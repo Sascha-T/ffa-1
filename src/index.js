@@ -4,10 +4,11 @@ const {Handler, Library, Registry, RequireAll: requireAll} = require("patron.js"
 const path = require("path");
 const {Pool} = require("pg");
 const {clientOptions, handlerOptions, registryOptions} = require("./config.js");
+const {token} = require("./credentials.json");
 const Logger = require("./utilities/Logger.js");
 class FFA {
   constructor() {
-    this.client = new Eris(process.env.TOKEN, clientOptions);
+    this.client = new Eris(token, clientOptions);
     this.registry = new Registry({...registryOptions, library: Library.Eris});
     this.handler = new Handler({...handlerOptions, registry: this.registry});
     this.pool = new Pool();
