@@ -1,0 +1,34 @@
+{
+  "name": "ffa",
+  "version": "1.0.0",
+  "description": "The core control of the only fully decentralized discord server.",
+  "main": "./src/index.js",
+  "private": true,
+  "dependencies": {
+    "eris": "^0.8.5",
+    "patron.js": "github:vim2meta/patron.js",
+    "pg": "^7.4.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^3.0.5",
+    "erlpack": "github:discordapp/erlpack",
+    "eventemitter3": "^3.1.0",
+    "zlib-sync": "^0.1.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.9.1"
+  },
+  "scripts": {
+    "lint": "node_modules/.bin/eslint src/**"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LJNeon/ffa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LJNeon/ffa/issues"
+  },
+  "homepage": "https://github.com/LJNeon/ffa#readme"
+}

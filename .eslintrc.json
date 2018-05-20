@@ -1,0 +1,56 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": "google",
+  "rules": {
+    "arrow-parens": [2, "as-needed"],
+    "comma-dangle": [2, "never"],
+    "curly": [2, "multi-or-nest"],
+    "keyword-spacing": [2, {
+      "after": true,
+      "before": false,
+      "overrides": {
+        "break": {"after": false},
+        "case": {"after": false},
+        "catch": {"after": false},
+        "continue": {"after": false},
+        "debugger": {"after": false},
+        "default": {"after": false},
+        "do": {"after": false},
+        "else": {"after": false},
+        "extends": {"before": true},
+        "finally": {"after": false},
+        "for": {"after": false},
+        "if": {"after": false},
+        "in": {"before": true},
+        "instanceof": {"before": true},
+        "of": {"before": true},
+        "super": {"after": false},
+        "switch": {"after": false},
+        "this": {"before": true, "after": false},
+        "while": {"after": false}
+      }
+    }],
+    "max-len": [2, {
+      "code": 120,
+      "tabWidth": 2,
+      "ignoreStrings": true,
+      "ignoreTemplateLiterals": true,
+      "ignoreUrls": true
+    }],
+    "no-console": 2,
+    "prefer-template": 2,
+    "require-jsdoc": 0,
+    "sort-keys": [2, "asc", {
+      "caseSensitive": false,
+      "natural": true
+    }],
+    "quotes": [2, "double", {
+      "avoidEscape": false,
+      "allowTemplateLiterals": true
+    }]
+  },
+  "parserOptions": {"ecmaVersion": 2018}
+}
