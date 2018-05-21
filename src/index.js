@@ -3,28 +3,29 @@ const Eris = require("eris");
 const {Handler, Library, Registry, RequireAll: requireAll} = require("patron.js");
 const path = require("path");
 const {Pool} = require("pg");
-const {clientOptions, handlerOptions, registryOptions} = require("./config.js");
-const {token} = require("./credentials.json");
+const {pgdatabase, pghost, pgpass, pgport, pguser, token} = require("./credentials.json");
 const Logger = require("./utilities/Logger.js");
-class FFA {
-  constructor() {
-    this.client = new Eris(token, clientOptions);
-    this.registry = new Registry({...registryOptions, library: Library.Eris});
-    this.handler = new Handler({...handlerOptions, registry: this.registry});
-    this.pool = new Pool();
-  }
-  static async init() {
-    const me = new FFA();
-    me.registry.registerPreconditions(await FFA.reqAbs("./preconditions"))
-    .registerTypeReaders(await FFA.reqAbs("./readers"))
-    .registerGroups(await FFA.reqAbs("./groups"))
-    .registerCommands(await FFA.reqAbs("./commands"));
-    for(const event of await FFA.reqAbs("./src/events"))
-      await event(me);
-    await me.client.connect();
-  }
-  static reqAbs(dir) {
-    return requireAll(path.join(__dirname, dir));
-  }
-}
-FFA.init().catch(e => Logger.error(e));
+const reqAbs = dir => requireAll(path.join(__dirname, dir));
+
+(async () => {
+  const me = {
+    config: require("./config.js"),
+    pool: new Pool({
+      database: pgdatabase,
+      host: pghost,
+      password: pgpass,
+      port: pgport,
+      user: pguser
+    })
+  };
+  me.client = new Eris(token, me.config.clientOptions);
+  me.registry = new Registry({...me.config.registryOptions, library: Library.Eris});
+  me.handler = new Handler({...me.config.handlerOptions, registry: me.registry});
+  me.registry.registerPreconditions(await reqAbs("./preconditions"))
+  .registerTypeReaders(await reqAbs("./readers"))
+  .registerGroups(await reqAbs("./groups"))
+  .registerCommands(await reqAbs("./commands"));
+  for(const event of await reqAbs("./events"))
+    await event(me);
+  await me.client.connect();
+})().catch(e => Logger.error(e) && process.exit(1));

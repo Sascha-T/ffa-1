@@ -1,6 +1,23 @@
 "use strict";
 module.exports = new class Config {
   constructor() {
+    // Bot config
+    this.clientOptions = {
+      compress: true,
+      defaultImageFormat: "png",
+      defaultImageSize: 2048,
+      disableEvents: {
+        TYPING_START: true,
+        VOICE_STATE_UPDATE: true
+      },
+      getAllUsers: true,
+      latencyThreshold: 1e3
+    };
+    this.handlerOptions = {};
+    this.registryOptions = {
+      caseSensitive: false
+    };
+
     // Command handler
     this.prefix = ";";
 
@@ -63,7 +80,6 @@ ou may join the official FFA server here: ${this.invite}.`;
     this.maxLb = 30;
     this.maxClear = 100;
     this.maxReasonLength = 600;
-    this.maxCmdLength = 500;
     this.maxCmdNewLines = 10;
     this.maxDeletedMsgs = 10;
 
@@ -106,7 +122,7 @@ ou may join the official FFA server here: ${this.invite}.`;
 
     // Default colors
     this.colors = [0xFF269A, 0x66FFCC, 0x00FF00, 0xB10DC9, 0x00E828, 0xFFFF00, 0x08F8FF, 0x03FFAB, 0xF226FF, 0xFF00BB,
-                   0xFF1C8E, 0x00FFFF, 0x68FF22, 0x14DEA0, 0xFFBE11, 0x0FFFFF, 0x2954FF, 0x40E0D0, 0x9624ED, 0x01ADB0,
-                   0xA8ED00, 0xBF255F];
+      0xFF1C8E, 0x00FFFF, 0x68FF22, 0x14DEA0, 0xFFBE11, 0x0FFFFF, 0x2954FF, 0x40E0D0, 0x9624ED, 0x01ADB0,
+      0xA8ED00, 0xBF255F];
   }
 }();

@@ -1,8 +1,13 @@
 "use strict";
-const {game: name} = require("../config.js");
 const Logger = require("../utilities/Logger.js");
+
 module.exports = me => {
-  me.client.on("ready", (async () => {
-    me.client.editStatus({name});
-  }).catch(e => Logger.error(e)));
+  me.client.on("ready", async () => {
+    try {
+      await me.client.editStatus({name: me.config.game});
+      Logger.info("READY");
+    }catch(e) {
+      Logger.error(e);
+    }
+  });
 };
