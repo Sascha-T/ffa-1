@@ -7,11 +7,12 @@ module.exports = new class GroupReader extends TypeReader {
       type: "group"
     });
   }
-  read(cmd, msg, arg, args, val, me) {
+
+  async read(cmd, msg, arg, args, val, me) {
     const match = me.registry.groups.find(c => me.registry.equals(c.name, val));
-    if(match != null)
-      return Promise.resolve(TypeReaderResult.fromSuccess(match));
+    if (match === undefined)
+      return TypeReaderResult.fromError(cmd, "This module doesn't exist.");
     else
-      return Promise.resolve(TypeReaderResult.fromError(cmd, "This module doesn't exist."));
+      return TypeReaderResult.fromSuccess(match);
   }
 }();

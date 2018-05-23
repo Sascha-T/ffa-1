@@ -10,6 +10,7 @@ module.exports = new class HelpCommand extends Command {
       names: ["help", "information", "info"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg, args, me) {
@@ -18,9 +19,11 @@ module.exports = new class HelpCommand extends Command {
       title: "FFA Information"
     };
 
-    if(msg.channel.type === 1)
+    if (msg.channel.guild == null)
       await message.create(msg.channel, reply);
-    else
+    else {
       await message.dm(msg.author, reply);
+      await message.create(msg.channel, "You have been DMed with bot information.");
+    }
   }
 }();

@@ -14,16 +14,17 @@ module.exports = new class ErrorLogsCommand extends Command {
       names: ["errorlogs", "errorlog"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg) {
-    const filename = `${Logger.dateStr}-Errors`;
+    const name = `${Logger.dateStr}-Errors`;
     let file;
 
     try {
-      file = await readFile(`${Logger.logsPath}/${filename}`);
-    }catch(e) {
-      if(e.code === "ENOENT")
+      file = await readFile(`${Logger.logsPath}/${name}`);
+    } catch (e) {
+      if (e.code === "ENOENT")
         return message.create(msg.channel, "No error log file has been created.", "error");
       else
         throw e;
@@ -31,7 +32,7 @@ module.exports = new class ErrorLogsCommand extends Command {
 
     await msg.channel.createMessage("", {
       file,
-      filename
+      name
     });
   }
 }();

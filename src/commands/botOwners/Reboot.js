@@ -10,6 +10,7 @@ module.exports = new class RebootCommand extends Command {
       names: ["reboot", "restart"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg) {

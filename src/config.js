@@ -5,7 +5,7 @@ module.exports = new class Config {
     this.clientOptions = {
       compress: true,
       defaultImageFormat: "png",
-      defaultImageSize: 2048,
+      defaultImageSize: 1024,
       disableEvents: {
         TYPING_START: true,
         VOICE_STATE_UPDATE: true
@@ -37,10 +37,8 @@ punished, the culprit must pay the consequences while vindicating the victim. Yo
 s by using \`${this.prefix}commands\`. If you wish to view the progress of this bot, or simply support the creators, y\
 ou may join the official FFA server here: ${this.invite}.`;
 
-
     // Account age required
     this.memberAge = 1728e5;
-
 
     // Chat settings
     this.chatServiceDelay = 3e4;

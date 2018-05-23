@@ -3,48 +3,48 @@ const config = require("../config.js");
 const random = require("./random.js");
 
 module.exports = {
-  async dm(user, msg, color) {
-    const channel = await user.getDMChannel();
+  create(channel, msg, color) {
     let result = msg.description;
 
-    if(result == null) {
-      if(msg.content == null)
+    if (result == null) {
+      if (msg.content == null)
         result = msg;
       else
         result = msg.content;
     }
 
-    if(color !== true) {
-      if(typeof msg === "string") {
+    if (color !== true && (channel.type === 1 ||
+        channel.permissionsOf(channel.guild.shard.client.user.id).has("embedLinks"))) {
+      if (typeof msg === "string") {
         result = module.exports.embedify({
           color,
           description: msg
         });
-      }else
+      } else
         result = module.exports.embedify(msg);
     }
 
     return channel.createMessage(result);
   },
 
-  create(channel, msg, color) {
+  async dm(user, msg, color) {
+    const channel = await user.getDMChannel();
     let result = msg.description;
 
-    if(result == null) {
-      if(msg.content == null)
+    if (result == null) {
+      if (msg.content == null)
         result = msg;
       else
         result = msg.content;
     }
 
-    if(color !== true && (channel.type === 1 ||
-        channel.permissionsOf(channel.guild.shard.client.user.id).has("embedLinks"))) {
-      if(typeof msg === "string") {
+    if (color !== true) {
+      if (typeof msg === "string") {
         result = module.exports.embedify({
           color,
           description: msg
         });
-      }else
+      } else
         result = module.exports.embedify(msg);
     }
 
@@ -54,14 +54,14 @@ module.exports = {
   embedify(options) {
     let embed = {};
 
-    if(typeof options === "string")
+    if (typeof options === "string")
       embed.description = options;
     else
       embed = options;
 
     const prop = `${embed.color}Color`;
 
-    if(embed.color == null || config.hasOwnProperty(prop) === false)
+    if (embed.color == null || config.hasOwnProperty(prop) === false)
       embed.color = random.element(config.colors);
     else
       embed.color = config[prop];
@@ -77,8 +77,8 @@ module.exports = {
   list(objs, name, desc) {
     let longest = objs[0][name].length + 2;
 
-    for(let a = 1; a < objs.length; a++) {
-      if(objs[a][name].length > longest)
+    for (let a = 1; a < objs.length; a++) {
+      if (objs[a][name].length > longest)
         longest = objs[a][name].length + 2;
     }
 

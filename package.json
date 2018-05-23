@@ -5,7 +5,7 @@
   "main": "./src/index.js",
   "private": true,
   "dependencies": {
-    "eris": "^0.8.5",
+    "eris": "^0.8.6",
     "patron.js": "github:vim2meta/patron.js",
     "pg": "^7.4.3"
   },
@@ -20,7 +20,7 @@
     "eslint-config-google": "^0.9.1"
   },
   "scripts": {
-    "lint": "node_modules/.bin/eslint src/**/*.js"
+    "lint": "node_modules/.bin/eslint . --ext .js --fix"
   },
   "license": "MIT",
   "repository": {

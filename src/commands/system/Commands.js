@@ -10,19 +10,23 @@ module.exports = new class CommandsCommand extends Command {
       names: ["commands", "cmds", "cmdlist", "commandlist"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg, args, me) {
     const reply = {
-      description: message.list(me.registry.commands.map(cmd => {
-        return {name: `${me.config.prefix}${cmd.names[0]}`, description: cmd.description};
-      }), "name", "description"),
+      description: message.list(me.registry.commands.map(cmd => ({
+        description: cmd.description,
+        name: `${me.config.prefix}${cmd.names[0]}`
+      })), "name", "description"),
       title: "Commands"
     };
 
-    if(msg.channel.type === 1)
+    if (msg.channel.guild == null)
       await message.create(msg.channel, reply);
-    else
+    else {
       await message.dm(msg.author, reply);
+      await message.create(msg.channel, "You have been DMed with a list of all commands.");
+    }
   }
 }();

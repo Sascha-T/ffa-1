@@ -10,6 +10,7 @@ module.exports = new class ModulesCommand extends Command {
       names: ["modules", "categories", "groups", "modulelist", "categorylist", "grouplist"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg, args, me) {

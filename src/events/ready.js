@@ -6,7 +6,7 @@ module.exports = me => {
     try {
       await me.client.editStatus({name: me.config.game});
       Logger.info("READY");
-    }catch(e) {
+    } catch (e) {
       Logger.error(e);
     }
   });

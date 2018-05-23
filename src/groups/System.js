@@ -1,5 +1,6 @@
 "use strict";
 const {Group} = require("patron.js");
+
 module.exports = new class SystemGroup extends Group {
   constructor() {
     super({

@@ -10,7 +10,6 @@ module.exports = new class ModuleCommand extends Command {
         example: "system",
         key: "a",
         name: "name",
-        remainder: true,
         type: "group"
       })],
       description: "List of all commands in a specific module.",
@@ -18,13 +17,15 @@ module.exports = new class ModuleCommand extends Command {
       names: ["module", "category", "group"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.uses = 0;
   }
 
   async run(msg, args, me) {
     await message.create(msg.channel, {
-      description: message.list(args.a.commands.map(cmd => {
-        return {name: `${me.config.prefix}${cmd.names[0]}`, description: cmd.description};
-      }), "name", "description"),
+      description: message.list(args.a.commands.map(cmd => ({
+        description: cmd.description,
+        name: `${me.config.prefix}${cmd.names[0]}`
+      })), "name", "description"),
       title: `${string.capitalize(args.a.name)}'s Commands`
     });
   }
