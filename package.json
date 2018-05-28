@@ -22,7 +22,8 @@
     "eslint-config-google": "^0.9.1"
   },
   "scripts": {
-    "lint": "node_modules/.bin/eslint . --ext .js --fix"
+    "lint": "node_modules/.bin/eslint . --ext .js --fix",
+    "test": "node ./test/index.js"
   },
   "license": "MIT",
   "repository": {
