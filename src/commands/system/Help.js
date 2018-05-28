@@ -1,5 +1,6 @@
 "use strict";
 const {Command, Context} = require("patron.js");
+const util = require("util");
 const message = require("../../utilities/message.js");
 
 module.exports = new class HelpCommand extends Command {
@@ -10,12 +11,20 @@ module.exports = new class HelpCommand extends Command {
       names: ["help", "information", "info"],
       usableContexts: [Context.DM, Context.Guild]
     });
+    this.helpMsg = false;
     this.uses = 0;
   }
 
   async run(msg, args, me) {
+    if (this.helpMsg === false) {
+      this.helpMsg = util.format(
+        me.config.guild.helpMsg, me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix,
+        me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix, me.config.guild.invite
+      );
+    }
+
     const reply = {
-      description: me.config.helpMsg,
+      description: this.helpMsg,
       title: "FFA Information"
     };
 
@@ -23,7 +32,7 @@ module.exports = new class HelpCommand extends Command {
       await message.create(msg.channel, reply);
     else {
       await message.dm(msg.author, reply);
-      await message.create(msg.channel, "You have been DMed with bot information.");
+      await message.reply(msg, "you have been DMed with bot information.");
     }
   }
 }();

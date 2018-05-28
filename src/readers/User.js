@@ -1,6 +1,6 @@
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
-const {regexes} = require("../utilities/constants.js");
+const regexes = require("../utilities/regexes.js");
 
 module.exports = new class UserReader extends TypeReader {
   constructor() {

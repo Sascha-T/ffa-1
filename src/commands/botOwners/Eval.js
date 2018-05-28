@@ -1,6 +1,7 @@
 "use strict";
 const {Argument, Command, Context} = require("patron.js");
 const message = require("../../utilities/message.js");
+const string = require("../../utilities/string.js");
 
 module.exports = new class EvalCommand extends Command {
   constructor() {
@@ -32,11 +33,11 @@ module.exports = new class EvalCommand extends Command {
         fields: [{
           inline: true,
           name: "Eval",
-          value: `\`\`\`js\n${args.a}\`\`\``
+          value: string.code(args.a)
         }, {
           inline: true,
           name: "Error",
-          value: `\`\`\`js\n${result}\`\`\``
+          value: string.code(result)
         }]
       }, "error");
     } else {
@@ -44,11 +45,11 @@ module.exports = new class EvalCommand extends Command {
         fields: [{
           inline: true,
           name: "Eval",
-          value: `\`\`\`js\n${args.a}\`\`\``
+          value: string.code(args.a)
         }, {
           inline: true,
           name: "Result",
-          value: `\`\`\`js\n${result}\`\`\``
+          value: string.code(result)
         }]
       });
     }

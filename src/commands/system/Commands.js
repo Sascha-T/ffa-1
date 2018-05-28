@@ -17,7 +17,7 @@ module.exports = new class CommandsCommand extends Command {
     const reply = {
       description: message.list(me.registry.commands.map(cmd => ({
         description: cmd.description,
-        name: `${me.config.prefix}${cmd.names[0]}`
+        name: `${me.config.bot.prefix}${cmd.names[0]}`
       })), "name", "description"),
       title: "Commands"
     };
@@ -26,7 +26,7 @@ module.exports = new class CommandsCommand extends Command {
       await message.create(msg.channel, reply);
     else {
       await message.dm(msg.author, reply);
-      await message.create(msg.channel, "You have been DMed with a list of all commands.");
+      await message.reply(msg, "you have been DMed with a list of all commands.");
     }
   }
 }();

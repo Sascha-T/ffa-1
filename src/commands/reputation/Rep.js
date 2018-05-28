@@ -1,9 +1,9 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
-const config = require("../../config.js");
 const message = require("../../utilities/message.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class RepCommand extends Command {
+module.exports = me => new class RepCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -13,7 +13,7 @@ module.exports = new class RepCommand extends Command {
         preconditions: ["noself"],
         type: "user"
       })],
-      cooldown: config.repCd,
+      cooldown: Number(me.config.cd.rep),
       description: "Give reputation to any user.",
       groupName: "reputation",
       names: ["rep"],
@@ -23,7 +23,9 @@ module.exports = new class RepCommand extends Command {
   }
 
   async run(msg, args, me) {
-    await me.db.giveRep(msg.channel.guild.id, args.a.id, me.config.repIncrease);
-    await message.create(msg.channel, `You have successfully repped **${message.tag(args.a)}**.`);
+    const {rep: {increase}} = await me.db.getGuild(msg.channel.guild.id, {rep: "increase"});
+
+    await me.db.changeRep(msg.channel.guild.id, args.a.id, increase);
+    await message.reply(msg, `you have successfully repped ${str.bold(message.tag(args.a))}.`);
   }
 }();

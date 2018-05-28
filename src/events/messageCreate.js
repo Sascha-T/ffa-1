@@ -1,5 +1,6 @@
 "use strict";
 const {CommandError} = require("patron.js");
+const {discordErrorCodes} = require("../utilities/constants.js");
 const Logger = require("../utilities/Logger.js");
 const message = require("../utilities/message.js");
 const cooldowns = {};
@@ -19,29 +20,34 @@ module.exports = me => {
           delete ratelimited[msg.author.id];
       }
 
-      if (msg.channel.type === 0) {
-        guild = await me.db.getGuild(msg.channel.guild.id, "auto_mute, muted_role_id, ignored_channel_ids");
+      if (msg.channel.guild != null) {
+        guild = await me.db.getGuild(msg.channel.guild.id, {
+          channels: "ignored_ids",
+          moderation: "auto_mute",
+          roles: "muted_id"
+        });
 
-        if (guild.auto_mute === true) {
+        if (guild.moderation.auto_mute === true) {
           // TODO spam service
         }
 
-        if (msg.member.roles.indexOf(guild.muted_role_id) !== -1 || guild.ignored_channel_ids.indexOf(msg.channel.id))
+        if (msg.member.roles.indexOf(guild.roles.muted_id) !== -1 ||
+            guild.channels.ignored_ids.indexOf(msg.channel.id) !== -1)
           return false;
 
-        if (msg.content.test(me.handler.argumentRegex) === false && (cooldowns.hasOwnProperty(msg.author.id) === false
+        if (me.handler.argumentRegex.test(msg.content) === false && (cooldowns.hasOwnProperty(msg.author.id) === false
             || cooldowns[msg.author.id] >= Date.now())) {
           cooldowns[msg.author.id] = Date.now() + me.config.chatServiceDelay;
-          await me.db.giveRep(msg.channel.guild.id, msg.author.id, me.config.chatReward);
+          await me.db.changeRep(msg.channel.guild.id, msg.author.id, me.config.chatReward);
         }
       }
 
-      const result = await me.handler.run(msg, me.config.prefix.length, me);
+      const result = await me.handler.run(msg, me.config.bot.prefix.length, me);
 
       if (result.success === true)
         result.command.uses++;
       else if (result.commandError === CommandError.CommandNotFound) {
-        // TODO custom commands
+        // TODO custom commands, cooldown reply, and tag prefix to replies.
       } else if (result.commandError !== CommandError.Cooldown && result.commandError !== CommandError.InvalidContext) {
         let reply = "";
 
@@ -49,18 +55,18 @@ module.exports = me => {
           reply = result.error.message;
           if (result.error.constructor.name === "DiscordHTTPError" ||
               result.error.constructor.name === "DiscordRESTError") {
-            if (result.error.code === 20001)
-              reply = "Only a user account may perform this action.";
-            else if (result.error.code === 50007)
+            if (result.error.code === discordErrorCodes.userOnly)
+              reply = "only a user account may perform this action.";
+            else if (result.error.code === discordErrorCodes.cantDM)
               reply = "I can't DM you. Please allow direct messages from guild users.";
-            else if (result.error.code === 403 || result.error.code === 50013)
+            else if (discordErrorCodes.noPerm(result.error.code))
               reply = "I don't have permission to do that.";
-            else if (result.error.code === 50034)
+            else if (result.error.code === discordErrorCodes.bulkDelete)
               reply = "Discord doesn't allow bulk deletion of messages that are more than two weeks old.";
-            else if (result.error.code > 499 && result.error.code < 600)
-              reply = "An unexpected error has occurred, please try again later.";
+            else if (discordErrorCodes.internalError(result.error.code))
+              reply = "an unexpected error has occurred, please try again later.";
             else if (result.error.message.indexOf("Request timed out (>15000ms)") === 0)
-              reply = "The request has timed out, please try again later.";
+              reply = "the request has timed out, please try again later.";
             else
               Logger.error(result.error);
           } else {
@@ -70,9 +76,9 @@ module.exports = me => {
         } else if (result.commandError === CommandError.BotPermission)
           reply = "I don't have permission to do that.";
         else if (result.commandError === CommandError.MemberPermission)
-          reply = "You don't have permission to do that.";
+          reply = "you don't have permission to do that.";
         else if (result.commandError === CommandError.InvalidArgCount)
-          reply = `you did this incorrectly.\n**Usage:** \`${me.config.prefix}${result.command.getUsage()}\`\n**Example:** \`${me.config.prefix}${result.command.getExample()}\``;
+          reply = `you are incorrectly using this command.\n**Usage:** \`${me.config.bot.prefix}${result.command.getUsage()}\`\n**Example:** \`${me.config.bot.prefix}${result.command.getExample()}\``;
         else if (result.commandError === CommandError.Precondition ||
               result.commandError === CommandError.TypeReader)
           reply = result.errorReason;
@@ -81,7 +87,7 @@ module.exports = me => {
           reply = result.error.message;
         }
 
-        await message.create(msg.channel, reply, "error");
+        await message.reply(msg, reply, "error");
       }
     } catch (e) {
       Logger.error(e);

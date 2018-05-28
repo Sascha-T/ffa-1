@@ -4,6 +4,7 @@ const {Argument, Command, Context} = require("patron.js");
 const util = require("util");
 const Logger = require("../../utilities/Logger.js");
 const message = require("../../utilities/message.js");
+const string = require("../../utilities/string.js");
 const readFile = util.promisify(fs.readFile);
 
 module.exports = new class LastErrorLogsCommand extends Command {
@@ -27,7 +28,7 @@ module.exports = new class LastErrorLogsCommand extends Command {
   async run(msg, args) {
     const name = `${Logger.dateStr}-Errors`;
     let file;
-    let reply = "```js\n";
+    let reply = "";
 
     try {
       file = (await readFile(`${Logger.logsPath}/${name}`, "utf8")).split("\n");
@@ -41,6 +42,6 @@ module.exports = new class LastErrorLogsCommand extends Command {
     for (let a = args.a >= file.length ? 0 : file.length - args.a; a < file.length; a++)
       reply += `${file[a]}\n`;
 
-    await message.create(msg.channel, `${reply}\`\`\``);
+    await message.create(msg.channel, string.code(reply));
   }
 }();

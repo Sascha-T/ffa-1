@@ -1,7 +1,7 @@
 "use strict";
 const {Argument, Command, Context} = require("patron.js");
 const message = require("../../utilities/message.js");
-const string = require("../../utilities/string.js");
+const str = require("../../utilities/string.js");
 
 module.exports = new class CommandCommand extends Command {
   constructor() {
@@ -22,8 +22,8 @@ module.exports = new class CommandCommand extends Command {
 
   async run(msg, args, me) {
     await message.create(msg.channel, {
-      description: `**Description:** ${args.a.description}\n**Usage:** \`${me.config.prefix}${args.a.getUsage()}\`\n**Example:** \`${me.config.prefix}${args.a.getExample()}\``,
-      title: string.uppercase(args.a.names[0])
+      description: `**Description:** ${args.a.description}\n**Usage:** \`${me.config.bot.prefix}${args.a.getUsage()}\`\n**Example:** \`${me.config.bot.prefix}${args.a.getExample()}\``,
+      title: str.uppercase(args.a.names[0])
     });
   }
 }();

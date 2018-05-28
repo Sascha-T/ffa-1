@@ -24,7 +24,7 @@ module.exports = new class ModuleCommand extends Command {
     await message.create(msg.channel, {
       description: message.list(args.a.commands.map(cmd => ({
         description: cmd.description,
-        name: `${me.config.prefix}${cmd.names[0]}`
+        name: `${me.config.bot.prefix}${cmd.names[0]}`
       })), "name", "description"),
       title: `${string.capitalize(args.a.name)}'s Commands`
     });
