@@ -66,7 +66,8 @@ const reqAbs = async (dir, me) => {
   }
 
   if (auth === false || config == false) {
-    Logger.error(new Error("Unable to locate ffa.ini or ffaAuth.ini file. Please put them in either the working directory or your home directory."));
+    /* eslint-disable-next-line no-console */
+    console.error("Unable to locate ffa.ini or ffaAuth.ini file. Please put them in either the working directory or your home directory.");
     process.exit(1);
   }
 

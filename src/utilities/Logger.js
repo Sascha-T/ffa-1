@@ -59,7 +59,7 @@ module.exports = new class Logger {
   }
 
   error(err) {
-    this.log("ERROR", util.inspect(err, {depth: null}));
+    this.log("ERROR", err instanceof Error ? util.inspect(err, {depth: null}) : err);
   }
 
   formatDate(date) {
