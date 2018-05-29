@@ -1,6 +1,6 @@
 {
   "name": "ffa",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "The core control of the only fully decentralized discord server.",
   "main": "./src/index.js",
   "private": true,
