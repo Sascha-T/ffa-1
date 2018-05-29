@@ -18,24 +18,28 @@
 "use strict";
 const fs = require("fs");
 const {parse} = require("ini");
+const path = require("path");
 /* eslint-disable-next-line no-console */
 console.log(require("./utilities/constants.js").licenseNotice);
 const {argv} = require("yargs").options({
   auth: {
     alias: "a",
-    coerce: arg => parse(fs.readFileSync(arg, "utf8")),
+    coerce: arg => parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
     desc: "Authentication file using the ini format.",
     example: "./ffaAuth.ini",
-    normalize: true,
     type: "string"
   },
   config: {
     alias: "c",
-    coerce: arg => parse(fs.readFileSync(arg, "utf8")),
+    coerce: arg => parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
     desc: "Configuration file using the ini format.",
     example: "./ffa.ini",
-    normalize: true,
     type: "string"
+  },
+  license: {
+    alias: "l",
+    desc: "Show the license.",
+    type: "boolean"
   }
 }).epilogue("For more information see: https://github.com/LJNeon/ffa")
 .help("help", "Show this help message.").alias("help", "h")
@@ -43,7 +47,6 @@ const {argv} = require("yargs").options({
 const Eris = require("eris");
 const {Handler, Library, Registry, RequireAll: requireAll} = require("patron.js");
 const {homedir} = require("os");
-const path = require("path");
 const util = require("util");
 const Logger = require("./utilities/Logger.js");
 const message = require("./utilities/message.js");
@@ -56,7 +59,7 @@ const reqAbs = async (dir, me) => {
 };
 const tryFetchIni = async () => {
   let files;
-  let result = {auth: false, config: false};
+  const result = {auth: false, config: false};
 
   if (argv.auth != null)
     result.auth = argv.auth;
@@ -65,14 +68,15 @@ const tryFetchIni = async () => {
     result.config = argv.config;
 
   if (result.auth === false || result.config === false) {
-    files = await readDir("./");
-    result.auth = await tryParse(result.auth, __dirname, files, "./ffaAuth.ini");
-    result.config = await tryParse(result.config, __dirname, files, "./ffa.ini");
+    const dir = path.join(__dirname, "../");
+    files = await readDir(dir);
+    result.auth = await tryParse(result.auth, dir, files, "ffaAuth.ini");
+    result.config = await tryParse(result.config, dir, files, "ffa.ini");
 
     if (result.auth === false || result.config === false) {
       files = await readDir(homedir());
-      result.auth = await tryParse(result.auth, homedir(), files, "./ffaAuth.ini");
-      result.config = await tryParse(result.config, homedir(), files, "./ffa.ini");
+      result.auth = await tryParse(result.auth, homedir(), files, "ffaAuth.ini");
+      result.config = await tryParse(result.config, homedir(), files, "ffa.ini");
 
       if (result.auth === false || result.config == false) {
         /* eslint-disable-next-line no-console */
@@ -88,11 +92,18 @@ const tryParse = async (bool, dir, files, file) => {
   if (bool === false && files.indexOf(file) !== -1)
     return parse(await readFile(path.join(dir, file), "utf8"));
 
-  return false;
+  return bool;
 };
 
 (async () => {
-  let {auth, config} = await tryFetchIni();
+  if (argv.license === true) {
+    console.clear();
+    /* eslint-disable-next-line no-console */
+    console.log(await readFile(path.join(__dirname, "../LICENSE"), "utf8"));
+    process.exit(0);
+  }
+
+  const {auth, config} = await tryFetchIni();
   const me = {
     auth,
     config,

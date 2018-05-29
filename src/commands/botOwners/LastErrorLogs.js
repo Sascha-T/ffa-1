@@ -56,7 +56,7 @@ module.exports = new class LastErrorLogsCommand extends Command {
         throw e;
     }
 
-    for (let a = args.a >= file.length ? 0 : file.length - args.a; a < file.length; a++)
+    for (let a = args.a >= file.length ? 0 : file.length - args.a - 1; a < file.length; a++)
       reply += `${file[a]}\n`;
 
     await message.create(msg.channel, string.code(reply));

@@ -17,8 +17,8 @@
  */
 "use strict";
 const {Command, Context} = require("patron.js");
-const util = require("util");
 const message = require("../../utilities/message.js");
+const str = require("../../utilities/string.js");
 
 module.exports = new class HelpCommand extends Command {
   constructor() {
@@ -34,10 +34,7 @@ module.exports = new class HelpCommand extends Command {
 
   async run(msg, args, me) {
     if (this.helpMsg === false) {
-      this.helpMsg = util.format(
-        me.config.guild.helpMsg, me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix,
-        me.config.bot.prefix, me.config.bot.prefix, me.config.bot.prefix, me.config.guild.invite
-      );
+      this.helpMsg = str.format(me.config.guild.helpMsg, me.config.bot.prefix, me.config.guild.invite);
     }
 
     const reply = {

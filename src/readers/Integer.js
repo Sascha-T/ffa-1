@@ -25,11 +25,11 @@ module.exports = new class IntTypeReader extends TypeReader {
     });
   }
 
-  async read(command, message, argument, args, input) {
-    const result = Number(input);
+  async read(cmd, msg, arg, args, val) {
+    const result = Number(val);
 
     if (Number.isInteger(result) === true)
       return TypeReaderResult.fromSuccess(result);
-    return TypeReaderResult.fromError(command, "You have provided an invalid integer.");
+    return TypeReaderResult.fromError(cmd, "you have provided an invalid integer.");
   }
 }();

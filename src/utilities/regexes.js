@@ -18,8 +18,9 @@
 "use strict";
 module.exports = {
   discrim: /^\d{4}$/,
-  id: /^\d{14,20}$/,
+  format: /{(\d+)}/g,
   formatting: /[<@!#&>:_~*`\\]/g,
+  id: /^\d{14,20}$/,
   mention: /^<@!?(\d{14,20})>$/,
   uppercase: /\b[a-z]|\B[A-Z]/g
 };

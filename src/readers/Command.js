@@ -26,9 +26,9 @@ module.exports = new class CommandReader extends TypeReader {
   }
 
   async read(cmd, msg, arg, args, val, me) {
-    const match = me.registry.commands.find(c => me.registry.equals(c.name, val));
+    const match = me.registry.commands.find(c => c.names.some(n => me.registry.equals(n, val)));
     if (match === undefined)
-      return TypeReaderResult.fromError(cmd, "This command doesn't exist.");
+      return TypeReaderResult.fromError(cmd, "this command doesn't exist.");
     else
       return TypeReaderResult.fromSuccess(match);
   }

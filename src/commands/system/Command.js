@@ -40,7 +40,7 @@ module.exports = new class CommandCommand extends Command {
   async run(msg, args, me) {
     await message.create(msg.channel, {
       description: `**Description:** ${args.a.description}\n**Usage:** \`${me.config.bot.prefix}${args.a.getUsage()}\`\n**Example:** \`${me.config.bot.prefix}${args.a.getExample()}\``,
-      title: str.uppercase(args.a.names[0])
+      title: str.capitalize(args.a.names[0])
     });
   }
 }();

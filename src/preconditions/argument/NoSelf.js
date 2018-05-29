@@ -25,9 +25,9 @@ module.exports = new class Between extends ArgumentPrecondition {
     });
   }
 
-  async run(command, msg, arg) {
+  async run(cmd, msg, arg) {
     if (arg.constructor.name !== "User" || msg.author.id !== arg.user.id)
       return PreconditionResult.fromSuccess();
-    return PreconditionResult.fromError(command, "This command may not be used on yourself.");
+    return PreconditionResult.fromError(cmd, "this command may not be used on yourself.");
   }
 }();

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {formatting, uppercase} = require("./regexes.js");
+const {format, formatting, uppercase} = require("./regexes.js");
 
 module.exports = {
   bold(str) {
@@ -33,5 +33,9 @@ module.exports = {
 
   escapeFormat(str) {
     return str.replace(formatting, "\\$&");
+  },
+
+  format(str, ...args) {
+    return str.replace(format, (m, a) => args[a]);
   }
 };
