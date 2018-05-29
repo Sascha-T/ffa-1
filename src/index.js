@@ -16,94 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const fs = require("fs");
-const {parse} = require("ini");
-const path = require("path");
-/* eslint-disable-next-line no-console */
 console.log(require("./utilities/constants.js").licenseNotice);
-const {argv} = require("yargs").options({
-  auth: {
-    alias: "a",
-    coerce: arg => parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
-    desc: "Authentication file using the ini format.",
-    example: "./ffaAuth.ini",
-    type: "string"
-  },
-  config: {
-    alias: "c",
-    coerce: arg => parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
-    desc: "Configuration file using the ini format.",
-    example: "./ffa.ini",
-    type: "string"
-  },
-  license: {
-    alias: "l",
-    desc: "Show the license.",
-    type: "boolean"
-  }
-}).epilogue("For more information see: https://github.com/LJNeon/ffa")
-.help("help", "Show this help message.").alias("help", "h")
-.version().describe("version", "Show the version number.").alias("version", "v");
+
 const Eris = require("eris");
-const {Handler, Library, Registry, RequireAll: requireAll} = require("patron.js");
-const {homedir} = require("os");
-const util = require("util");
+const patron = require("patron.js");
+const path = require("path");
+const cli = require("./cli.js");
 const Logger = require("./utilities/Logger.js");
 const message = require("./utilities/message.js");
 const PGDatabase = require("./database/PGDatabase.js");
-const readDir = util.promisify(fs.readdir);
-const readFile = util.promisify(fs.readFile);
 
-const reqAbs = async (dir, me) => {
-  return (await requireAll(path.join(__dirname, dir))).map(r => me != null && typeof r === "function" ? r(me) : r);
-};
-const tryFetchIni = async () => {
-  let files;
-  const result = {auth: false, config: false};
+async function reqAbs(dir, me) {
+  const req = await patron.RequireAll(path.join(__dirname, dir));
 
-  if (argv.auth != null)
-    result.auth = argv.auth;
-
-  if (argv.config != null)
-    result.config = argv.config;
-
-  if (result.auth === false || result.config === false) {
-    const dir = path.join(__dirname, "../");
-    files = await readDir(dir);
-    result.auth = await tryParse(result.auth, dir, files, "ffaAuth.ini");
-    result.config = await tryParse(result.config, dir, files, "ffa.ini");
-
-    if (result.auth === false || result.config === false) {
-      files = await readDir(homedir());
-      result.auth = await tryParse(result.auth, homedir(), files, "ffaAuth.ini");
-      result.config = await tryParse(result.config, homedir(), files, "ffa.ini");
-
-      if (result.auth === false || result.config == false) {
-        /* eslint-disable-next-line no-console */
-        console.error("Unable to locate ffa.ini or ffaAuth.ini file. Please put them in either the working directory or your home directory.");
-        process.exit(1);
-      }
-    }
-  }
-
-  return result;
-};
-const tryParse = async (bool, dir, files, file) => {
-  if (bool === false && files.indexOf(file) !== -1)
-    return parse(await readFile(path.join(dir, file), "utf8"));
-
-  return bool;
-};
+  return req.map(r => me != null && typeof r === "function" ? r(me) : r);
+}
 
 (async () => {
-  if (argv.license === true) {
-    console.clear();
-    /* eslint-disable-next-line no-console */
-    console.log(await readFile(path.join(__dirname, "../LICENSE"), "utf8"));
-    process.exit(0);
-  }
+  await cli.checkLicense();
 
-  const {auth, config} = await tryFetchIni();
+  const {auth, config} = await cli.fetchIni();
+
   const me = {
     auth,
     config,
@@ -116,8 +49,8 @@ const tryParse = async (bool, dir, files, file) => {
   Logger.setup(me);
   message.init(me);
   me.client = new Eris(auth.bot.token, config.clientOptions);
-  me.registry = new Registry({...config.registryOptions, library: Library.Eris});
-  me.handler = new Handler({...config.handlerOptions, registry: me.registry});
+  me.registry = new patron.Registry({...config.registryOptions, library: patron.Library.Eris});
+  me.handler = new patron.Handler({...config.handlerOptions, registry: me.registry});
   me.registry.registerArgumentPreconditions(await reqAbs("./preconditions/argument", me))
   .registerPreconditions(await reqAbs("./preconditions/command", me))
   .registerTypeReaders(await reqAbs("./readers", me))

@@ -19,7 +19,7 @@
 module.exports = {
   discrim: /^\d{4}$/,
   format: /{(\d+)}/g,
-  formatting: /[<@!#&>:_~*`\\]/g,
+  markdown: /[<@!#&>:_~*`\\]/g,
   id: /^\d{14,20}$/,
   mention: /^<@!?(\d{14,20})>$/,
   uppercase: /\b[a-z]|\B[A-Z]/g
