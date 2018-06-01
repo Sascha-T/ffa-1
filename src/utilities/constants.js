@@ -3,21 +3,22 @@
  * Copyright (c) 2018 FFA contributors
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
 /* eslint-disable no-magic-numbers */
 module.exports = {
+  alphabet: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
   clearDeleteDelay: 3e3,
   deletedMsgChars: 200,
   discordErrorCodes: {
@@ -33,6 +34,13 @@ module.exports = {
     ERROR: "\x1b[31m",
     INFO: "\x1b[32m",
     WARN: "\x1b[33m"
+  },
+  times: {
+    d: 86400,
+    h: 3600,
+    m: 60,
+    s: 1,
+    w: 604800
   }
 };
 /* eslint-enable no-magic-numbers */

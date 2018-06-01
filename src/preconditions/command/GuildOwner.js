@@ -16,26 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {format, markdown, uppercase} = require("./regexes.js");
+const {Precondition, PreconditionResult} = require("patron.js");
 
-module.exports = {
-  bold(str) {
-    return `**${str}**`;
-  },
-
-  capitalize(str) {
-    return str.replace(uppercase, x => String.fromCharCode(x.charCodeAt(0) ^ 32));
-  },
-
-  code(str, lang = "js") {
-    return `\`\`\`${lang}\n${str}\`\`\``;
-  },
-
-  escapeFormat(str) {
-    return str.replace(markdown, "\\$&");
-  },
-
-  format(str, ...args) {
-    return str.replace(format, (m, a) => args[a]);
+module.exports = new class GuildOwnerPrecondition extends Precondition {
+  constructor() {
+    super({
+      name: "guildowner"
+    });
   }
-};
+
+  async run(cmd, msg, opt, me) {
+    if (msg.channel.guild.ownerID === msg.author.id)
+      return PreconditionResult.fromSuccess();
+
+    return PreconditionResult.fromError(cmd, "this command may only be used by the bot owners.");
+  }
+}();

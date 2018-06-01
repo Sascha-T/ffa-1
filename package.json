@@ -9,6 +9,7 @@
     "ini": "^1.3.5",
     "patron.js": "github:vim2meta/patron.js",
     "pg": "^7.4.3",
+    "pg-native": "^3.0.0",
     "yargs": "^11.0.0"
   },
   "optionalDependencies": {
@@ -22,7 +23,7 @@
     "eslint-config-google": "^0.9.1"
   },
   "scripts": {
-    "lint": "node_modules/.bin/eslint . --ext .js --fix",
+    "lint": "node_modules/.bin/eslint . --ext .js",
     "test": "node ./test/index.js"
   },
   "license": "MIT",

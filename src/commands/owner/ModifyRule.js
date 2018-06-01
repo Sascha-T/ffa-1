@@ -18,30 +18,40 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const message = require("../../utilities/message.js");
-const str = require("../../utilities/string.js");
+const ruleService = require("../../services/rules.js");
 
-module.exports = me => new class RepCommand extends Command {
+module.exports = new class AddRuleCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
-        example: "AlabamaTrigger#0001",
-        key: "a",
-        name: "user",
-        preconditions: ["noself"],
-        type: "user"
+        example: "3b",
+        key: "rule",
+        name: "rule",
+        type: "rule"
+      }), new Argument({
+        example: "\"Nutting faster than Willy Wonka\"",
+        key: "content",
+        name: "content",
+        type: "string"
+      }), new Argument({
+        defaultValue: null,
+        example: "420h",
+        key: "muteLen",
+        name: "max mute length",
+        type: "timespan"
       })],
-      cooldown: Number(me.config.cd.rep),
-      description: "Give reputation to any user.",
-      groupName: "reputation",
-      names: ["rep"],
-      preconditions: ["memberage"]
+      description: "Modifies any rule.",
+      groupName: "owner",
+      names: ["modifyrule", "editrule", "changerule"]
     });
   }
 
   async run(msg, args, me) {
-    const {rep: {increase}} = await me.db.getGuild(msg.channel.guild.id, {rep: "increase"});
-
-    await me.db.changeRep(msg.channel.guild.id, args.a.id, increase);
-    await message.reply(msg, `you have successfully repped ${str.bold(message.tag(args.a))}.`);
+    await me.db.pool.query(
+      "update rules set content = $1, mute_length = $2 where id = $3 and category = $4 and timestamp = $5",
+      [args.content, args.muteLen, msg.channel.guild.id, args.rule.category, args.rule.timestamp]
+    );
+    await message.reply(msg, "you have successfully modified this rule.");
+    await ruleService.update(me, msg.channel.guild.id);
   }
 }();

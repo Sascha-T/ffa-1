@@ -16,21 +16,34 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Command, Context} = require("patron.js");
-const message = require("../../utilities/message.js");
+const {TypeReader, TypeReaderResult} = require("patron.js");
+const {times} = require("../utilities/constants.js");
+const {number} = require("../utilities/regexes.js");
+const keys = Object.keys(times);
 
-module.exports = new class RebootCommand extends Command {
+module.exports = new class TimeSpanReader extends TypeReader {
   constructor() {
     super({
-      description: "Reboots the bot.",
-      groupName: "botowners",
-      names: ["reboot", "restart"],
-      usableContexts: [Context.DM, Context.Guild]
+      type: "timespan"
     });
   }
 
-  async run(msg) {
-    await message.create(msg.channel, "Rebooting...", true);
-    process.exit(0);
+  async read(cmd, msg, arg, args, val, me) {
+    let result = val.match(number);
+
+    if (result != null) {
+      result = Number(result);
+
+      if (Number.isNaN(result) === false) {
+        const lastIndex = val.length - 1;
+
+        if (keys.some(k => me.registry.equals(val.indexOf(k), lastIndex)) === true)
+          result = Math.round(result * times[val.charAt(lastIndex)]);
+
+        return TypeReaderResult.fromSuccess(result);
+      }
+    }
+
+    return TypeReaderResult.fromError(cmd, "you have provided an invalid time.");
   }
 }();

@@ -3,16 +3,16 @@
  * Copyright (c) 2018 FFA contributors
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
@@ -42,7 +42,6 @@ module.exports = new class Logger {
 
   async log(level, msg) {
     if (this.init === false)
-      /* eslint-disable-next-line no-console */
       return console[level.toLowerCase()]("The logger needs to be initialized before use.", msg);
 
     const date = new Date();
@@ -55,7 +54,6 @@ module.exports = new class Logger {
 
     if (this.stream.writable === false)
       await this.waitTillWritable();
-    /* eslint-disable-next-line no-console */
     console[level.toLowerCase()](`${this.formatDate(date)} ${logColors[level]}[${level}]\x1b[0m ${msg}`);
     const formattedMsg = `${this.dateStr} [${level}] ${msg}\n`;
     this.stream.write(formattedMsg);

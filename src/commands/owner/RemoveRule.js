@@ -16,21 +16,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Command, Context} = require("patron.js");
+const {Argument, Command} = require("patron.js");
 const message = require("../../utilities/message.js");
+const ruleService = require("../../services/rules.js");
 
-module.exports = new class RebootCommand extends Command {
+module.exports = new class AddRuleCommand extends Command {
   constructor() {
     super({
-      description: "Reboots the bot.",
-      groupName: "botowners",
-      names: ["reboot", "restart"],
-      usableContexts: [Context.DM, Context.Guild]
+      args: [new Argument({
+        example: "2d",
+        key: "rule",
+        name: "rule",
+        type: "rule"
+      })],
+      description: "Removes a rule.",
+      groupName: "owner",
+      names: ["removerule", "deleterule", "eraserule"]
     });
   }
 
-  async run(msg) {
-    await message.create(msg.channel, "Rebooting...", true);
-    process.exit(0);
+  async run(msg, args, me) {
+    await me.db.pool.query(
+      "drop from rules where id = $1 and category = $2 and timestamp = $3",
+      [msg.channel.guild.id, args.rule.category, args.rule.timestamp]
+    );
+    await message.reply(msg, "you have successfully removed this rule.");
+    await ruleService.update(me, msg.channel.guild.id);
   }
 }();

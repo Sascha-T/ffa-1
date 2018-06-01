@@ -16,26 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {format, markdown, uppercase} = require("./regexes.js");
+const {Group} = require("patron.js");
 
-module.exports = {
-  bold(str) {
-    return `**${str}**`;
-  },
-
-  capitalize(str) {
-    return str.replace(uppercase, x => String.fromCharCode(x.charCodeAt(0) ^ 32));
-  },
-
-  code(str, lang = "js") {
-    return `\`\`\`${lang}\n${str}\`\`\``;
-  },
-
-  escapeFormat(str) {
-    return str.replace(markdown, "\\$&");
-  },
-
-  format(str, ...args) {
-    return str.replace(format, (m, a) => args[a]);
+module.exports = new class OwnersGroup extends Group {
+  constructor() {
+    super({
+      description: "Commands reserved for the server owner.",
+      name: "owners",
+      preconditions: ["guildowner"]
+    });
   }
-};
+}();

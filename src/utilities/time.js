@@ -16,26 +16,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {format, markdown, uppercase} = require("./regexes.js");
+const {times} = require("./constants.js");
 
 module.exports = {
-  bold(str) {
-    return `**${str}**`;
-  },
+  format(timespan) {
+    let smallest = "";
 
-  capitalize(str) {
-    return str.replace(uppercase, x => String.fromCharCode(x.charCodeAt(0) ^ 32));
-  },
+    for (const time in times) {
+      if (times.hasOwnProperty(time) === false)
+        continue;
 
-  code(str, lang = "js") {
-    return `\`\`\`${lang}\n${str}\`\`\``;
-  },
+      if (timespan > times[time])
+        return `${Math.floor(timespan / times[time])}${time}`;
+      else if (timespan === times[time])
+        return `1${time}`;
 
-  escapeFormat(str) {
-    return str.replace(markdown, "\\$&");
-  },
+      if (times[time] < times[smallest])
+        smallest = time;
+    }
 
-  format(str, ...args) {
-    return str.replace(format, (m, a) => args[a]);
+    return `~0${smallest}`;
   }
 };
