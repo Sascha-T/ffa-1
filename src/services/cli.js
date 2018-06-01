@@ -58,7 +58,7 @@ module.exports = {
   checkLicense: async () => {
     if (argv.license === true) {
       console.clear();
-      console.log(await readFile(path.join(__dirname, "../LICENSE"), "utf8"));
+      console.log(await readFile(path.join(__dirname, "../../LICENSE"), "utf8"));
       process.exit(0);
     }
   },
@@ -74,7 +74,7 @@ module.exports = {
       result.config = argv.config;
 
     if (result.auth === false || result.config === false) {
-      const dir = path.join(__dirname, "../");
+      const dir = path.join(__dirname, "../../");
       files = await readDir(dir);
       result.auth = await parse(result.auth, dir, files, "ffaAuth.ini");
       result.config = await parse(result.config, dir, files, "ffa.ini");

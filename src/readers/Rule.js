@@ -32,16 +32,16 @@ module.exports = new class RuleReader extends TypeReader {
 
     if (result != null) {
       const categories = await ruleService.getCategories(me, msg.channel.guild.id);
-      const category = Number(result) - 1;
+      const category = Number(result[0]) - 1;
 
-      if (Number.isInteger(category) && categories.length < category) {
-        const rule = val.slice(result.length);
+      if (Number.isInteger(category) && categories.length > category && category > -1) {
+        let rule = val.slice(result.length - 1);
 
         if (rule.length < 3) {
           rule = ruleService.countLetters(rule);
 
           if (rule < categories[category].length)
-            return TypeReaderResult.fromSuccess(cmd, categories[category][rule]);
+            return TypeReaderResult.fromSuccess(categories[category][rule]);
         }
 
         return TypeReaderResult.fromError(cmd, "you have provided invalid rule letters.");

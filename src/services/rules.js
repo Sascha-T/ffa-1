@@ -18,6 +18,7 @@
 "use strict";
 const {alphabet} = require("../utilities/constants.js");
 const message = require("../utilities/message.js");
+const random = require("../utilities/random.js");
 const str = require("../utilities/string.js");
 const time = require("../utilities/time.js");
 
@@ -33,7 +34,7 @@ module.exports = {
 
   async getCategories(me, guildId) {
     const query = await me.db.pool.query(
-      "select category, content, mute_length from rules where id = $1 order by timestamp asc",
+      "select category, content, mute_length, timestamp from rules where id = $1 order by timestamp asc",
       [guildId]
     );
     const rules = query.rows;
@@ -89,15 +90,24 @@ module.exports = {
       const channel = me.client.getChannel(channelId);
 
       if (channel !== null) {
-        await channel.purge(channel.messages.size(), m => m.author.id === me.client.user.id);
+        const msgs = await channel.getMessages(100);
+
+        for (let i = 0; i < msgs.length; i++) {
+          if (msgs[i].author.id === me.client.user.id)
+            await msgs[i].delete();
+        }
 
         const categories = await this.getCategories(me, guildId);
+        const colors = [...message.colors];
 
         for (let i = 0; i < categories.length; i++) {
+          const color = random.element(colors);
+          colors.splice(colors.indexOf(color), 1);
+
           await message.create(channel, {
             description: this.listRules(categories[i]),
             title: `${i + 1}. ${str.capitalize(categories[i][0].category)}:`
-          });
+          }, color);
         }
 
         this.queue[guildId]--;

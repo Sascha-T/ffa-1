@@ -51,12 +51,12 @@ module.exports = new class SetCommand extends Command {
     );
 
     if (column.rows.length === 0)
-      await message.reply(msg, "invalid table and column pair specified.");
+      await message.replyError(msg, "invalid table and column pair specified.");
     else {
       const type = column.rows[0].data_type;
 
       if (type === "ARRAY") {
-        await message.reply(
+        await message.replyError(
           msg,
           `this column is a list, use either \`${me.config.bot.prefix}add\` or \`${me.config.bot.prefix}remove\`.`
         );

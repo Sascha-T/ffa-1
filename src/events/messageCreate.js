@@ -61,11 +61,9 @@ module.exports = me => {
 
       const result = await me.handler.run(msg, me.config.bot.prefix.length, me);
 
-      if (result.success === true)
-        result.command.uses++;
-      else if (result.commandError === CommandError.CommandNotFound) {
+      if (result.commandError === CommandError.CommandNotFound) {
         // TODO custom commands, cooldown reply, and tag prefix to replies.
-      } else if (result.commandError !== CommandError.Cooldown && result.commandError !== CommandError.InvalidContext) {
+      } else if (result.success === false && result.commandError !== CommandError.Cooldown && result.commandError !== CommandError.InvalidContext) {
         let reply = "";
 
         if (result.commandError === CommandError.Exception) {
@@ -104,7 +102,7 @@ module.exports = me => {
           reply = result.error.message;
         }
 
-        await message.reply(msg, reply, "error");
+        await message.replyError(msg, reply);
       }
     } catch (e) {
       Logger.error(e);

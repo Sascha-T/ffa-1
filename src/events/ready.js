@@ -23,21 +23,26 @@ module.exports = me => {
   me.client.on("ready", async () => {
     try {
       await me.client.editStatus({name: str.format(me.config.bot.game, me.config.bot.prefix)});
-      for (const guild of me.client.guilds) {
+
+      for (const guild of me.client.guilds.values()) {
         const {channels} = await me.db.getGuild(guild.id, {channels: "archive_id, ignored_ids, log_id, rules_id"});
         const guildChannels = guild.channels.map(c => c.id);
         const exists = channels.ignored_ids.filter(i => guildChannels.indexOf(i) !== -1);
 
-        if (guildChannels.indexOf(channels.archive_id) === -1)
+        if (channels.archive_id != null && guildChannels.indexOf(channels.archive_id) === -1)
           await me.db.pool.query("update channels set archive_id = null where id = $1", [guild.id]);
-        else if (exists.length !== channels.ignored_ids.length) {
+
+        if (exists.length !== channels.ignored_ids.length) {
           await me.db.pool.query(
             "update channels set ignored_ids = $1 where id = $2",
             [guild.id, JSON.stringify(exists)]
           );
-        } else if (guildChannels.indexOf(channels.log_id) === -1)
+        }
+
+        if (channels.log_id != null && guildChannels.indexOf(channels.log_id) === -1)
           await me.db.pool.query("update channels set log_id = null where id = $1", [guild.id]);
-        else if (guildChannels.indexOf(channels.rules_id) === -1)
+
+        if (channels.rules_id != null && guildChannels.indexOf(channels.rules_id) === -1)
           await me.db.pool.query("update channels set rules_id = null where id = $1", [guild.id]);
       }
       Logger.info("READY");

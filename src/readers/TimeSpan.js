@@ -32,12 +32,12 @@ module.exports = new class TimeSpanReader extends TypeReader {
     let result = val.match(number);
 
     if (result != null) {
-      result = Number(result);
+      result = Number(result[0]);
 
       if (Number.isNaN(result) === false) {
         const lastIndex = val.length - 1;
 
-        if (keys.some(k => me.registry.equals(val.indexOf(k), lastIndex)) === true)
+        if (keys.some(k => val.indexOf(k) === lastIndex) === true)
           result = Math.round(result * times[val.charAt(lastIndex)]);
 
         return TypeReaderResult.fromSuccess(result);

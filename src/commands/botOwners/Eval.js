@@ -47,7 +47,7 @@ module.exports = new class EvalCommand extends Command {
     }
 
     if (result instanceof Error) {
-      await message.create(msg.channel, {
+      await message.createError(msg.channel, {
         fields: [{
           inline: true,
           name: "Eval",
@@ -57,7 +57,7 @@ module.exports = new class EvalCommand extends Command {
           name: "Error",
           value: string.code(result)
         }]
-      }, "error");
+      });
     } else {
       await message.create(msg.channel, {
         fields: [{

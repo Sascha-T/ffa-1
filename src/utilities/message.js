@@ -22,7 +22,7 @@ const str = require("./string.js");
 module.exports = {
   colors: false,
 
-  create(channel, msg, color) {
+  create(channel, msg, color, override = false) {
     if (this.colors === false)
       return console.warn("The message utility needs to be initialized before use.");
 
@@ -35,7 +35,7 @@ module.exports = {
         result = msg.content;
     }
 
-    if (color !== true && (channel.type === 1 ||
+    if (override !== true && (channel.guild == null ||
         channel.permissionsOf(channel.guild.shard.client.user.id).has("embedLinks"))) {
       if (typeof msg === "string") {
         result = this.embedify({
@@ -49,7 +49,11 @@ module.exports = {
     return channel.createMessage(result);
   },
 
-  async dm(user, msg, color) {
+  createError(channel, msg) {
+    return this.create(channel, msg, this.errorColor);
+  },
+
+  async dm(user, msg, color, override = false) {
     if (this.colors === false)
       return console.warn("The message utility needs to be initialized before use.");
 
@@ -63,7 +67,7 @@ module.exports = {
         result = msg.content;
     }
 
-    if (color !== true) {
+    if (override !== true) {
       if (typeof msg === "string") {
         result = this.embedify({
           color,
@@ -84,10 +88,8 @@ module.exports = {
     else
       embed = options;
 
-    if (embed.color == null || this.colors.hasOwnProperty(embed.color) === false)
-      embed.color = random.element(this.colorValues);
-    else
-      embed.color = this.colors[embed.color];
+    if (embed.color == null)
+      embed.color = random.element(this.colors);
 
     return {
       content: "",
@@ -95,10 +97,11 @@ module.exports = {
     };
   },
 
+  errorColor: false,
+
   init(me) {
-    const colors = me.config.colors.map(c => Number(c));
-    this.colors = colors;
-    this.colorValues = Object.values(colors);
+    this.colors = me.config.colors.map(c => Number(c));
+    this.errorColor = Number(me.config.customColors.error);
   },
 
   list(objs, name, desc) {
@@ -114,7 +117,7 @@ module.exports = {
     }).join("\n")}\`\`\``;
   },
 
-  reply(msg, reply, color) {
+  reply(msg, reply, color, override = false) {
     if (this.colors === false)
       return console.warn("The message utility needs to be initialized before use.");
 
@@ -127,7 +130,7 @@ module.exports = {
         result = reply.content;
     }
 
-    if (color !== true && (msg.channel.type === 1 ||
+    if (override !== true && (msg.channel.guild == null ||
         msg.channel.permissionsOf(msg.channel.guild.shard.client.user.id).has("embedLinks"))) {
       if (typeof reply === "string") {
         result = this.embedify({
@@ -142,6 +145,10 @@ module.exports = {
       result = `${str.bold(this.tag(msg.author))}, ${result}`;
 
     return msg.channel.createMessage(result);
+  },
+
+  replyError(msg, reply) {
+    return this.reply(msg, reply, this.errorColor);
   },
 
   role(role) {

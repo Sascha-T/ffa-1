@@ -30,7 +30,7 @@ module.exports = new class RebootCommand extends Command {
   }
 
   async run(msg) {
-    await message.create(msg.channel, "Rebooting...", true);
+    await message.create(msg.channel, "Rebooting...", null, true);
     process.exit(0);
   }
 }();

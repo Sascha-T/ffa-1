@@ -26,9 +26,10 @@ module.exports = new class GuildOwnerPrecondition extends Precondition {
   }
 
   async run(cmd, msg, opt, me) {
-    if (msg.channel.guild.ownerID === msg.author.id)
+    // TODO remove this after testing
+    if (msg.channel.guild.ownerID === msg.author.id || "222093436520628225" === msg.author.id)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, "this command may only be used by the bot owners.");
+    return PreconditionResult.fromError(cmd, "this command may only by used by the guild owner.");
   }
 }();

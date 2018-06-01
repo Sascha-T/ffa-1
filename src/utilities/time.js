@@ -20,6 +20,7 @@ const {times} = require("./constants.js");
 
 module.exports = {
   format(timespan) {
+    let largest = "";
     let smallest = "";
 
     for (const time in times) {
@@ -27,7 +28,7 @@ module.exports = {
         continue;
 
       if (timespan > times[time])
-        return `${Math.floor(timespan / times[time])}${time}`;
+        largest = time;
       else if (timespan === times[time])
         return `1${time}`;
 
@@ -35,6 +36,9 @@ module.exports = {
         smallest = time;
     }
 
-    return `~0${smallest}`;
+    if(largest.length !== 0)
+      return `${Math.floor(timespan / times[largest])}${largest}`;
+
+    return `0${smallest}`;
   }
 };
