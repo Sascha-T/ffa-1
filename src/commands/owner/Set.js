@@ -17,6 +17,8 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const {config} = require("../../services/cli.js");
+const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 
 module.exports = new class SetCommand extends Command {
@@ -44,8 +46,8 @@ module.exports = new class SetCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
-    const column = await me.db.pool.query(
+  async run(msg, args) {
+    const column = await Database.pool.query(
       `select data_type from information_schema.columns where (table_schema, table_name, column_name) = ('public', $1, $2)`,
       [args.table, args.column]
     );
@@ -58,16 +60,16 @@ module.exports = new class SetCommand extends Command {
       if (type === "ARRAY") {
         await message.replyError(
           msg,
-          `this column is a list, use either \`${me.config.bot.prefix}add\` or \`${me.config.bot.prefix}remove\`.`
+          `this column is a list, use either \`${config.bot.prefix}add\` or \`${config.bot.prefix}remove\`.`
         );
       } else if (type.indexOf("int") !== -1 || type === "real") {
-        await me.db.pool.query(
+        await Database.pool.query(
           `update ${args.table} set ${args.column} = $1 where id = $2`,
           [Number(args.value), msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
       } else if (type === "character varying") {
-        await me.db.pool.query(
+        await Database.pool.query(
           `update ${args.table} set ${args.column} = $1 where id = $2`,
           [args.value, msg.channel.guild.id]
         );

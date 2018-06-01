@@ -19,50 +19,29 @@
 process.env.TZ = "utc";
 console.log(require("./utilities/constants.js").licenseNotice);
 
-const Eris = require("eris");
 const patron = require("patron.js");
 const path = require("path");
 const cli = require("./services/cli.js");
 const Logger = require("./utilities/Logger.js");
-const message = require("./utilities/message.js");
-const Database = require("./services/Database.js");
 
-async function reqAbs(dir, me) {
-  const req = await patron.RequireAll(path.join(__dirname, dir));
-
-  return req.map(r => me != null && typeof r === "function" ? r(me) : r);
+async function reqAbs(dir) {
+  return patron.RequireAll(path.join(__dirname, dir));
 }
 
 (async () => {
   await cli.checkLicense();
+  await cli.fetchIni();
 
-  const {auth, config} = await cli.fetchIni();
+  const client = require("./services/client.js");
+  const registry = require("./services/registry.js");
+  registry.registerArgumentPreconditions(await reqAbs("./preconditions/argument"))
+  .registerPreconditions(await reqAbs("./preconditions/command"))
+  .registerTypeReaders(await reqAbs("./readers"))
+  .registerGroups(await reqAbs("./groups"))
+  .registerCommands(await reqAbs("./commands"));
 
-  const me = {
-    auth,
-    config,
-    db: new Database({
-      baseGuildId: config.guild.id,
-      connection: auth.pg
-    })
-  };
-
-  Logger.setup(me);
-  message.init(me);
-  me.client = new Eris(auth.bot.token, config.clientOptions);
-  me.registry = new patron.Registry({...config.registryOptions, library: patron.Library.Eris});
-  me.handler = new patron.Handler({...config.handlerOptions, registry: me.registry});
-  me.registry.registerArgumentPreconditions(await reqAbs("./preconditions/argument", me))
-  .registerPreconditions(await reqAbs("./preconditions/command", me))
-  .registerTypeReaders(await reqAbs("./readers", me))
-  .registerGroups(await reqAbs("./groups", me))
-  .registerCommands(await reqAbs("./commands", me));
-  const events = await reqAbs("./events");
-
-  for (let i = 0; i < events.length; i++)
-    await events[i](me);
-
-  await me.client.connect();
+  await reqAbs("./events");
+  await client.connect();
 })().catch(e => {
   Logger.error(e);
   process.exit(1);

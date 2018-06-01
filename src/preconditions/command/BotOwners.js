@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
+const {auth} = require("../../services/cli.js");
 
 module.exports = new class BotOwnersPrecondition extends Precondition {
   constructor() {
@@ -25,8 +26,8 @@ module.exports = new class BotOwnersPrecondition extends Precondition {
     });
   }
 
-  async run(cmd, msg, opt, me) {
-    if (me.auth.bot.owners.indexOf(msg.author.id) === -1)
+  async run(cmd, msg, opt) {
+    if (auth.bot.owners.indexOf(msg.author.id) === -1)
       return PreconditionResult.fromError(cmd, "this command may only be used by the bot owners.");
 
     return PreconditionResult.fromSuccess();

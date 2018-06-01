@@ -16,30 +16,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const client = require("../services/client.js");
+const Database = require("../services/Database.js");
 const Logger = require("../utilities/Logger.js");
 
-module.exports = me => {
-  me.client.on("channelDelete", async channel => {
-    try {
-      if (channel.guild != null) {
-        const {channels} = await me.db.getGuild(channel.guild.id, {channels: "archive_id, ignored_ids, log_id, rules_id"});
-        const pos = channels.ignored_ids.indexOf(channel.id);
+client.on("channelDelete", async channel => {
+  try {
+    if (channel.guild != null) {
+      const {channels} = await Database.getGuild(channel.guild.id, {channels: "archive_id, ignored_ids, log_id, rules_id"});
+      const pos = channels.ignored_ids.indexOf(channel.id);
 
-        if (channel.id === channels.archive_id)
-          await me.db.pool.query("update channels set archive_id = null where id = $1", [channel.guild.id]);
-        else if (pos !== -1) {
-          channels.ignored_ids.splice(pos, 1);
-          await me.db.pool.query(
-            "update channels set ignored_ids = $1 where id = $2",
-            [channel.guild.id, JSON.stringify(channels.ignored_ids)]
-          );
-        } else if (channel.id === channels.log_id)
-          await me.db.pool.query("update channels set log_id = null where id = $1", [channel.guild.id]);
-        else if (channel.id === channels.rules_id)
-          await me.db.pool.query("update channels set rules_id = null where id = $1", [channel.guild.id]);
-      }
-    } catch (e) {
-      Logger.error(e);
+      if (channel.id === channels.archive_id)
+        await Database.pool.query("update channels set archive_id = null where id = $1", [channel.guild.id]);
+      else if (pos !== -1) {
+        channels.ignored_ids.splice(pos, 1);
+        await Database.pool.query(
+          "update channels set ignored_ids = $1 where id = $2",
+          [channel.guild.id, JSON.stringify(channels.ignored_ids)]
+        );
+      } else if (channel.id === channels.log_id)
+        await Database.pool.query("update channels set log_id = null where id = $1", [channel.guild.id]);
+      else if (channel.id === channels.rules_id)
+        await Database.pool.query("update channels set rules_id = null where id = $1", [channel.guild.id]);
     }
-  });
-};
+  } catch (e) {
+    Logger.error(e);
+  }
+});

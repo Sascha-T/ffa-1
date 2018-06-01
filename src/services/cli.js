@@ -47,15 +47,52 @@ const {argv} = require("yargs").options({
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 
+function parseNumbers(ini) {
+  const obj = {...ini};
+
+  for (const prop in obj) {
+    if (obj.hasOwnProperty(prop) === false || typeof obj[prop] === "boolean")
+      continue;
+
+    if (Array.isArray(obj[prop]) === true)
+      obj[prop] = obj[prop].map(i => {
+        if (typeof i === "boolean")
+          return i;
+
+        if (typeof i !== "string")
+          return parseNumbers(i);
+
+        const number = Number(i);
+
+        if (Number.isNaN(number) === false && number <= Number.MAX_SAFE_INTEGER)
+          return number;
+
+        return i;
+      });
+    else if (typeof obj[prop] !== "string")
+      obj[prop] = parseNumbers(obj[prop]);
+    else {
+      const number = Number(obj[prop]);
+
+      if (Number.isNaN(number) === false && number <= Number.MAX_SAFE_INTEGER)
+        obj[prop] = number;
+    }
+  }
+
+  return obj;
+}
+
 async function parse(bool, dir, files, file) {
   if (bool === false && files.indexOf(file) !== -1)
-    return ini.parse(await readFile(path.join(dir, file), "utf8"));
+    return parseNumbers(ini.parse(await readFile(path.join(dir, file), "utf8")));
 
   return bool;
 }
 
 module.exports = {
-  checkLicense: async () => {
+  auth: false,
+
+  async checkLicense() {
     if (argv.license === true) {
       console.clear();
       console.log(await readFile(path.join(__dirname, "../../LICENSE"), "utf8"));
@@ -63,37 +100,40 @@ module.exports = {
     }
   },
 
-  fetchIni: async () => {
-    let files;
-    const result = {auth: false, config: false};
+  config: false,
 
-    if (argv.auth != null)
-      result.auth = argv.auth;
+  async fetchIni() {
+    if (this.auth === false || this.config === false) {
+      let files;
 
-    if (argv.config != null)
-      result.config = argv.config;
+      if (argv.auth != null)
+        this.auth = argv.auth;
 
-    if (result.auth === false || result.config === false) {
-      const dir = path.join(__dirname, "../../");
-      files = await readDir(dir);
-      result.auth = await parse(result.auth, dir, files, "ffaAuth.ini");
-      result.config = await parse(result.config, dir, files, "ffa.ini");
+      if (argv.config != null)
+        this.config = argv.config;
 
-      if (result.auth === false || result.config === false) {
-        files = await readDir(homedir);
-        result.auth = await parse(result.auth, homedir, files, "ffaAuth.ini");
-        result.config = await parse(result.config, homedir, files, "ffa.ini");
+      if (this.auth === false || this.config === false) {
+        const dir = path.join(__dirname, "../../");
+        files = await readDir(dir);
+        this.auth = await parse(this.auth, dir, files, "ffaAuth.ini");
+        this.config = await parse(this.config, dir, files, "ffa.ini");
 
-        if (result.auth === false) {
-          console.error("Unable to locate ffaAuth.ini. Please double-check that it's in the working directory, your home directory, or the --auth argument.");
-          process.exit(1);
-        } else if (result.config === false) {
-          console.error("Unable to locate ffa.ini. Please double-check that it's in the working directory, your home directory, or the --config argument.");
-          process.exit(1);
+        if (this.auth === false || this.config === false) {
+          files = await readDir(homedir);
+          this.auth = await parse(this.auth, homedir, files, "ffaAuth.ini");
+          this.config = await parse(this.config, homedir, files, "ffa.ini");
+
+          if (this.auth === false) {
+            console.error("Unable to locate ffaAuth.ini. Please double-check that it's in the working directory, your home directory, or the --auth argument.");
+            process.exit(1);
+          } else if (this.config === false) {
+            console.error("Unable to locate ffa.ini. Please double-check that it's in the working directory, your home directory, or the --config argument.");
+            process.exit(1);
+          }
         }
       }
     }
 
-    return result;
+    return {auth: this.auth, config: this.config};
   }
 };

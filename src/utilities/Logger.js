@@ -19,7 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
-const {logColors} = require("./constants.js");
+const {logColors, logsDirectory} = require("./constants.js");
 const appendFile = util.promisify(fs.appendFile);
 
 module.exports = new class Logger {
@@ -27,12 +27,7 @@ module.exports = new class Logger {
     const date = new Date();
     this.day = date.getUTCDate();
     this.dateStr = this.formatDate(date);
-    this.init = false;
-  }
-
-  setup(me) {
-    this.init = true;
-    this.logsPath = path.join(__dirname, `../../${me.config.logsDirectory}`);
+    this.logsPath = path.join(__dirname, `../../${logsDirectory}`);
 
     if (fs.existsSync(this.logsPath) === false)
       fs.mkdir(this.logsPath);
@@ -41,9 +36,6 @@ module.exports = new class Logger {
   }
 
   async log(level, msg) {
-    if (this.init === false)
-      return console[level.toLowerCase()]("The logger needs to be initialized before use.", msg);
-
     const date = new Date();
 
     if (date.getUTCDate() !== this.day) {

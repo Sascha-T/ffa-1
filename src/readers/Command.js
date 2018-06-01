@@ -17,6 +17,7 @@
  */
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
+const registry = require("../services/registry.js");
 
 module.exports = new class CommandReader extends TypeReader {
   constructor() {
@@ -25,8 +26,8 @@ module.exports = new class CommandReader extends TypeReader {
     });
   }
 
-  async read(cmd, msg, arg, args, val, me) {
-    const match = me.registry.commands.find(c => c.names.some(n => me.registry.equals(n, val) === true) === true);
+  async read(cmd, msg, arg, args, val) {
+    const match = registry.commands.find(c => c.names.some(n => registry.equals(n, val) === true) === true);
     if (match === undefined)
       return TypeReaderResult.fromError(cmd, "this command doesn't exist.");
     else

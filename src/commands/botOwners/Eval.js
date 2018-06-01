@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command, Context} = require("patron.js");
+const cli = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const string = require("../../utilities/string.js");
 
@@ -32,12 +33,12 @@ module.exports = new class EvalCommand extends Command {
       })],
       description: "Evaluates JavaScript code",
       groupName: "botowners",
-      names: ["eval"],
+      names: ["eval", "ev"],
       usableContexts: [Context.DM, Context.Guild]
     });
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     let result;
 
     try {
@@ -47,7 +48,7 @@ module.exports = new class EvalCommand extends Command {
     }
 
     if (result instanceof Error) {
-      await message.createError(msg.channel, {
+      await message.create(msg.channel, {
         fields: [{
           inline: true,
           name: "Eval",
@@ -57,7 +58,7 @@ module.exports = new class EvalCommand extends Command {
           name: "Error",
           value: string.code(result)
         }]
-      });
+      }, cli.config.customColors.error);
     } else {
       await message.create(msg.channel, {
         fields: [{

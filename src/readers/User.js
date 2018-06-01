@@ -17,7 +17,9 @@
  */
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
+const client = require("../services/client.js");
 const regexes = require("../utilities/regexes.js"); // TODO fix username matching
+const registry = require("../services/registry.js");
 
 module.exports = new class UserReader extends TypeReader {
   constructor() {
@@ -26,27 +28,29 @@ module.exports = new class UserReader extends TypeReader {
     });
   }
 
-  async read(cmd, msg, arg, args, val, me) {
+  async read(cmd, msg, arg, args, val) {
     let id = val.match(regexes.mention);
 
     if (id != null || (id = val.match(regexes.id)) != null) {
       id = id[id.length - 1];
 
-      if (me.client.users.get(id) != null)
-        return TypeReaderResult.fromSuccess(me.client.users.get(id));
+      if (client.users.get(id) != null)
+        return TypeReaderResult.fromSuccess(client.users.get(id));
     }
 
     if (msg.channel.guild != null) {
       const index = val.lastIndexOf("#");
 
       if (index === -1) {
+        const member = msg.channel.guild.members.find(m => m.username === val);
 
+        if (member != null)
+          return TypeReaderResult.fromSuccess(member.user);
       } else {
-        let discrim = val.slice(index);
+        let discrim = val.slice(index + 1);
         const username = val.slice(0, index);
 
         if (regexes.discrim.test(discrim) === true) {
-          discrim = Number(discrim);
           const member = msg.channel.guild.members.find(m => m.discriminator === discrim && m.username === username);
 
           if (member != null)

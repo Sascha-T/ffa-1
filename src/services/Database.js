@@ -17,11 +17,12 @@
  */
 "use strict";
 const {Pool} = require("pg").native;
+const {auth, config} = require("./cli.js");
 
-module.exports = class Database {
+module.exports = new class Database {
   constructor(options) {
-    this.baseGuildId = options.baseGuildId;
-    this.pool = new Pool(options.connection);
+    this.baseGuildId = config.guild.id;
+    this.pool = new Pool(auth.pg);
   }
 
   async changeRep(guildId, userId, change) {
@@ -67,7 +68,7 @@ module.exports = class Database {
           const neededStr = needed.join(", ");
           const defaultValues = await this.getFirstRow(`select ${neededStr} from ${table} where id = $1`, [this.baseGuildId]);
           res[table] = await this.getFirstRow(
-            `insert into ${table}(id, ${neededStr}) values($1, ${this.valueStr(needed.length)}) on conflict (id) do nothing returning ${tables[table]}`,
+            `insert into ${table}(id, ${neededStr}) values($1, ${this.stringifyQuery(needed.length)}) on conflict (id) do nothing returning ${tables[table]}`,
             [id, ...this.sortDefaultValues(defaultValues, needed)]
           );
         }

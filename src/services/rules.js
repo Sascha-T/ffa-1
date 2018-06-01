@@ -17,6 +17,8 @@
  */
 "use strict";
 const {alphabet} = require("../utilities/constants.js");
+const client = require("../services/client.js");
+const Database = require("../services/Database.js");
 const message = require("../utilities/message.js");
 const random = require("../utilities/random.js");
 const str = require("../utilities/string.js");
@@ -32,8 +34,8 @@ module.exports = {
     return result;
   },
 
-  async getCategories(me, guildId) {
-    const query = await me.db.pool.query(
+  async getCategories(guildId) {
+    const query = await Database.pool.query(
       "select category, content, mute_length, timestamp from rules where id = $1 order by timestamp asc",
       [guildId]
     );
@@ -80,24 +82,24 @@ module.exports = {
 
   queue: {},
 
-  async start(me, guildId) {
-    const query = await me.db.getGuild(guildId, {channels: "rules_id"});
+  async start(guildId) {
+    const query = await Database.getGuild(guildId, {channels: "rules_id"});
     const channelId = query.channels.rules_id;
 
     if (channelId == null)
       this.queue[guildId] = 0;
     else {
-      const channel = me.client.getChannel(channelId);
+      const channel = client.getChannel(channelId);
 
       if (channel !== null) {
         const msgs = await channel.getMessages(100);
 
         for (let i = 0; i < msgs.length; i++) {
-          if (msgs[i].author.id === me.client.user.id)
+          if (msgs[i].author.id === client.user.id)
             await msgs[i].delete();
         }
 
-        const categories = await this.getCategories(me, guildId);
+        const categories = await this.getCategories(guildId);
         const colors = [...message.colors];
 
         for (let i = 0; i < categories.length; i++) {
@@ -113,15 +115,15 @@ module.exports = {
         this.queue[guildId]--;
 
         if (this.queue[guildId] !== 0)
-          this.start(me, guildId);
+          this.start(guildId);
       }
     }
   },
 
-  update(me, guildId) {
+  update(guildId) {
     if (this.queue.hasOwnProperty(guildId) === false || this.queue[guildId] === 0) {
       this.queue[guildId] = 1;
-      this.start(me, guildId);
+      this.start(guildId);
     } else if (this.queue[guildId] === 1)
       this.queue[guildId]++;
   }

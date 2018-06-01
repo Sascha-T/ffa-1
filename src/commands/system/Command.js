@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command, Context} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const str = require("../../utilities/string.js");
 
@@ -36,9 +37,9 @@ module.exports = new class CommandCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     await message.create(msg.channel, {
-      description: `**Description:** ${args.a.description}\n**Usage:** \`${me.config.bot.prefix}${args.a.getUsage()}\`\n**Example:** \`${me.config.bot.prefix}${args.a.getExample()}\``,
+      description: `**Description:** ${args.a.description}\n**Usage:** \`${config.bot.prefix}${args.a.getUsage()}\`\n**Example:** \`${config.bot.prefix}${args.a.getExample()}\``,
       title: str.capitalize(args.a.names[0])
     });
   }

@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
 
@@ -35,12 +36,12 @@ module.exports = new class AddRuleCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
-    await me.db.pool.query(
+  async run(msg, args) {
+    await Database.pool.query(
       "delete from rules where id = $1 and category = $2 and timestamp = $3",
       [msg.channel.guild.id, args.rule.category, args.rule.timestamp]
     );
     await message.reply(msg, "you have successfully removed this rule.");
-    await ruleService.update(me, msg.channel.guild.id);
+    await ruleService.update(msg.channel.guild.id);
   }
 }();

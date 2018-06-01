@@ -17,6 +17,7 @@
  */
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
+const registry = require("../services/registry.js");
 
 module.exports = new class GroupReader extends TypeReader {
   constructor() {
@@ -25,8 +26,8 @@ module.exports = new class GroupReader extends TypeReader {
     });
   }
 
-  async read(cmd, msg, arg, args, val, me) {
-    const match = me.registry.groups.find(c => me.registry.equals(c.name, val));
+  async read(cmd, msg, arg, args, val) {
+    const match = registry.groups.find(c => registry.equals(c.name, val));
     if (match === undefined)
       return TypeReaderResult.fromError(cmd, "this module doesn't exist.");
     else

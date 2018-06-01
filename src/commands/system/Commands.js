@@ -17,7 +17,9 @@
  */
 "use strict";
 const {Command, Context} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
+const registry = require("../../services/registry.js");
 
 module.exports = new class CommandsCommand extends Command {
   constructor() {
@@ -29,11 +31,11 @@ module.exports = new class CommandsCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     const reply = {
-      description: message.list(me.registry.commands.map(cmd => ({
+      description: message.list(registry.commands.map(cmd => ({
         description: cmd.description,
-        name: `${me.config.bot.prefix}${cmd.names[0]}`
+        name: `${config.bot.prefix}${cmd.names[0]}`
       })), "name", "description"),
       title: "Commands"
     };

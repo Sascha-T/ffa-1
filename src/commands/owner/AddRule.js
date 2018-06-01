@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
 
@@ -46,12 +47,12 @@ module.exports = new class AddRuleCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
-    await me.db.pool.query(
+  async run(msg, args) {
+    await Database.pool.query(
       "insert into rules(id, category, content, mute_length, timestamp) values($1, $2, $3, $4, $5)",
       [msg.channel.guild.id, args.category, args.content, args.muteLen, Math.floor(Date.now() / 1e3)]
     );
     await message.reply(msg, "you have successfully added a new rule.");
-    await ruleService.update(me, msg.channel.guild.id);
+    await ruleService.update(msg.channel.guild.id);
   }
 }();

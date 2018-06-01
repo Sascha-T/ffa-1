@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
+const Database = require("../../services/Database.js");
 
 module.exports = new class MemberAgePrecondition extends Precondition {
   constructor() {
@@ -25,11 +26,14 @@ module.exports = new class MemberAgePrecondition extends Precondition {
     });
   }
 
-  async run(cmd, msg, opt, me) {
-    const {ages: {member: memberAge}} = await me.db.getGuild(msg.channel.guild.id, {ages: "member"});
+  async run(cmd, msg, opt) {
+    const {ages: {member: memberAge}} = await Database.getGuild(msg.channel.guild.id, {ages: "member"});
 
     if (msg.member.joinedAt == null || msg.member.joinedAt + memberAge * 1e3 > Date.now())
-      return PreconditionResult.fromError(cmd, `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`);
+      return PreconditionResult.fromError(
+        cmd,
+        `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`
+      );
 
     return PreconditionResult.fromSuccess();
   }

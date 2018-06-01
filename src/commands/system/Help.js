@@ -17,10 +17,11 @@
  */
 "use strict";
 const {Command, Context} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const str = require("../../utilities/string.js");
 
-module.exports = me => new class HelpCommand extends Command {
+module.exports = new class HelpCommand extends Command {
   constructor() {
     super({
       description: "Information about the bot.",
@@ -28,10 +29,10 @@ module.exports = me => new class HelpCommand extends Command {
       names: ["help", "information", "info"],
       usableContexts: [Context.DM, Context.Guild]
     });
-    this.helpMsg = str.format(me.config.guild.helpMsg, me.config.bot.prefix, me.config.guild.invite);
+    this.helpMsg = str.format(config.guild.helpMsg, config.bot.prefix, config.guild.invite);
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     const reply = {
       description: this.helpMsg,
       title: "FFA Information"

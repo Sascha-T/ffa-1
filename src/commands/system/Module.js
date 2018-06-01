@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command, Context} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const string = require("../../utilities/string.js");
 
@@ -37,11 +38,11 @@ module.exports = new class ModuleCommand extends Command {
     this.uses = 0;
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     await message.create(msg.channel, {
       description: message.list(args.a.commands.map(cmd => ({
         description: cmd.description,
-        name: `${me.config.bot.prefix}${cmd.names[0]}`
+        name: `${config.bot.prefix}${cmd.names[0]}`
       })), "name", "description"),
       title: `${string.capitalize(args.a.name)}'s Commands`
     });

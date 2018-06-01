@@ -17,10 +17,12 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const {config} = require("../../services/cli.js");
+const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 const str = require("../../utilities/string.js");
 
-module.exports = me => new class UnrepCommand extends Command {
+module.exports = new class UnrepCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -30,7 +32,7 @@ module.exports = me => new class UnrepCommand extends Command {
         preconditions: ["noself"],
         type: "user"
       })],
-      cooldown: Number(me.config.cd.unrep),
+      cooldown: config.cd.unrep,
       description: "Remove reputation from any user.",
       groupName: "reputation",
       names: ["unrep"],
@@ -38,10 +40,10 @@ module.exports = me => new class UnrepCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
-    const {rep: {decrease}} = await me.db.getGuild(msg.channel.guild.id, {rep: "decrease"});
+  async run(msg, args) {
+    const {rep: {decrease}} = await Database.getGuild(msg.channel.guild.id, {rep: "decrease"});
 
-    await me.db.changeRep(msg.channel.guild.id, args.a.id, -decrease);
+    await Database.changeRep(msg.channel.guild.id, args.a.id, -decrease);
     await message.reply(msg, `you have successfully unrepped ${str.bold(message.tag(args.a))}.`);
   }
 }();

@@ -17,10 +17,12 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const {config} = require("../../services/cli.js");
+const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 const str = require("../../utilities/string.js");
 
-module.exports = me => new class RepCommand extends Command {
+module.exports = new class RepCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -30,7 +32,7 @@ module.exports = me => new class RepCommand extends Command {
         preconditions: ["noself"],
         type: "user"
       })],
-      cooldown: Number(me.config.cd.rep),
+      cooldown: config.cd.rep,
       description: "Give reputation to any user.",
       groupName: "reputation",
       names: ["rep"],
@@ -38,10 +40,10 @@ module.exports = me => new class RepCommand extends Command {
     });
   }
 
-  async run(msg, args, me) {
-    const {rep: {increase}} = await me.db.getGuild(msg.channel.guild.id, {rep: "increase"});
+  async run(msg, args) {
+    const {rep: {increase}} = await Database.getGuild(msg.channel.guild.id, {rep: "increase"});
 
-    await me.db.changeRep(msg.channel.guild.id, args.a.id, increase);
+    await Database.changeRep(msg.channel.guild.id, args.a.id, increase);
     await message.reply(msg, `you have successfully repped ${str.bold(message.tag(args.a))}.`);
   }
 }();

@@ -35,6 +35,7 @@ module.exports = {
     INFO: "\x1b[32m",
     WARN: "\x1b[33m"
   },
+  logsDirectory: "./logs/",
   times: {
     d: 86400,
     h: 3600,

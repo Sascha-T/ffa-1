@@ -16,38 +16,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const client = require("../services/client.js");
+const {config} = require("../services/cli.js");
+const Database = require("../services/Database.js");
 const Logger = require("../utilities/Logger.js");
 const str = require("../utilities/string.js");
+const wrapEvent = require("../utilities/wrapEvent.js");
 
-module.exports = me => {
-  me.client.on("ready", async () => {
-    try {
-      await me.client.editStatus({name: str.format(me.config.bot.game, me.config.bot.prefix)});
+client.on("ready", wrapEvent(async () => {
+  await client.editStatus({name: str.format(config.bot.game, config.bot.prefix)});
 
-      for (const guild of me.client.guilds.values()) {
-        const {channels} = await me.db.getGuild(guild.id, {channels: "archive_id, ignored_ids, log_id, rules_id"});
-        const guildChannels = guild.channels.map(c => c.id);
-        const exists = channels.ignored_ids.filter(i => guildChannels.indexOf(i) !== -1);
+  for (const guild of client.guilds.values()) {
+    const {channels} = await Database.getGuild(guild.id, {channels: "archive_id, ignored_ids, log_id, rules_id"});
+    const guildChannels = guild.channels.map(c => c.id);
+    const exists = channels.ignored_ids.filter(i => guildChannels.indexOf(i) !== -1);
 
-        if (channels.archive_id != null && guildChannels.indexOf(channels.archive_id) === -1)
-          await me.db.pool.query("update channels set archive_id = null where id = $1", [guild.id]);
+    if (channels.archive_id != null && guildChannels.indexOf(channels.archive_id) === -1)
+      await Database.pool.query("update channels set archive_id = null where id = $1", [guild.id]);
 
-        if (exists.length !== channels.ignored_ids.length) {
-          await me.db.pool.query(
-            "update channels set ignored_ids = $1 where id = $2",
-            [guild.id, JSON.stringify(exists)]
-          );
-        }
-
-        if (channels.log_id != null && guildChannels.indexOf(channels.log_id) === -1)
-          await me.db.pool.query("update channels set log_id = null where id = $1", [guild.id]);
-
-        if (channels.rules_id != null && guildChannels.indexOf(channels.rules_id) === -1)
-          await me.db.pool.query("update channels set rules_id = null where id = $1", [guild.id]);
-      }
-      Logger.info("READY");
-    } catch (e) {
-      Logger.error(e);
+    if (exists.length !== channels.ignored_ids.length) {
+      await Database.pool.query(
+        "update channels set ignored_ids = $1 where id = $2",
+        [guild.id, JSON.stringify(exists)]
+      );
     }
-  });
-};
+
+    if (channels.log_id != null && guildChannels.indexOf(channels.log_id) === -1)
+      await Database.pool.query("update channels set log_id = null where id = $1", [guild.id]);
+
+    if (channels.rules_id != null && guildChannels.indexOf(channels.rules_id) === -1)
+      await Database.pool.query("update channels set rules_id = null where id = $1", [guild.id]);
+  }
+  Logger.info("READY");
+}));

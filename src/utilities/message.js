@@ -16,16 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const {config} = require("../services/cli.js");
 const random = require("./random.js");
 const str = require("./string.js");
 
 module.exports = {
-  colors: false,
+  colors: config.colors,
 
   create(channel, msg, color, override = false) {
-    if (this.colors === false)
-      return console.warn("The message utility needs to be initialized before use.");
-
     let result = msg.description;
 
     if (result == null) {
@@ -49,14 +47,12 @@ module.exports = {
     return channel.createMessage(result);
   },
 
+  // TODO delete when eval is removed
   createError(channel, msg) {
     return this.create(channel, msg, this.errorColor);
   },
 
   async dm(user, msg, color, override = false) {
-    if (this.colors === false)
-      return console.warn("The message utility needs to be initialized before use.");
-
     const channel = await user.getDMChannel();
     let result = msg.description;
 
@@ -97,12 +93,7 @@ module.exports = {
     };
   },
 
-  errorColor: false,
-
-  init(me) {
-    this.colors = me.config.colors.map(c => Number(c));
-    this.errorColor = Number(me.config.customColors.error);
-  },
+  errorColor: config.customColors.error,
 
   list(objs, name, desc) {
     let longest = objs[0][name].length + 2;
@@ -118,9 +109,6 @@ module.exports = {
   },
 
   reply(msg, reply, color, override = false) {
-    if (this.colors === false)
-      return console.warn("The message utility needs to be initialized before use.");
-
     let result = reply.description;
 
     if (result == null) {

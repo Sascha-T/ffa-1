@@ -18,6 +18,7 @@
 "use strict";
 const {Command, Context} = require("patron.js");
 const message = require("../../utilities/message.js");
+const registry = require("../../services/registry.js");
 
 module.exports = new class ModulesCommand extends Command {
   constructor() {
@@ -30,9 +31,9 @@ module.exports = new class ModulesCommand extends Command {
     this.uses = 0;
   }
 
-  async run(msg, args, me) {
+  async run(msg, args) {
     await message.create(msg.channel, {
-      description: message.list(me.registry.groups, "name", "description"),
+      description: message.list(registry.groups, "name", "description"),
       title: "Modules"
     });
   }
