@@ -46,6 +46,19 @@ client.on("ready", wrapEvent(async () => {
 
     if (channels.rules_id != null && guildChannels.indexOf(channels.rules_id) === -1)
       await Database.pool.query("update channels set rules_id = null where id = $1", [guild.id]);
+
+    const query = await Database.pool.query("select user_id, in_guild from users where guild_id = $1", [guild.id]);
+    const users = query.rows;
+
+    for (let i = 0; i < users.length; i++) {
+      if (guild.members.has(users[i].user_id) !== users[i].in_guild) {
+        await Database.pool.query(
+          "update users set in_guild = $1 where (guild_id, user_id) = ($2, $3)",
+          [guild.members.has(users[i].user_id), guild.id, users[i].user_id]
+        );
+      }
+    }
   }
+
   Logger.info("READY");
 }));

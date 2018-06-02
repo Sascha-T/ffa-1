@@ -56,7 +56,7 @@ client.on("messageCreate", wrapEvent(async msg => {
         guild.channels.ignored_ids.indexOf(msg.channel.id) !== -1)
       return false;
 
-    if (handler.argumentRegex.test(msg.content) === false && (cooldowns.hasOwnProperty(msg.author.id) === false
+    if (msg.content.indexOf(config.bot.prefix) !== 0 && (cooldowns.hasOwnProperty(msg.author.id) === false
         || cooldowns[msg.author.id] >= Date.now())) {
       cooldowns[msg.author.id] = Date.now() + guild.chat.delay;
       await Database.changeRep(msg.channel.guild.id, msg.author.id, guild.chat.reward);
