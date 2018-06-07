@@ -16,26 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class MemberAgePrecondition extends Precondition {
+module.exports = new class MaxLength extends ArgumentPrecondition {
   constructor() {
     super({
-      name: "memberage"
+      name: "maxlength"
     });
   }
 
-  async run(cmd, msg, opt) {
-    const {ages: {member: memberAge}} = await Database.getGuild(msg.channel.guild.id, {ages: "member"});
+  async run(cmd, msg, arg, args, val, opt) {
+    if (val == null || val.length <= opt.max)
+      return PreconditionResult.fromSuccess();
 
-    if (msg.member.joinedAt == null || msg.member.joinedAt + memberAge * 1e3 > Date.now()) {
-      return PreconditionResult.fromError(
-        cmd,
-        `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`
-      );
-    }
-
-    return PreconditionResult.fromSuccess();
+    return PreconditionResult.fromError(cmd, `The maximum ${arg.name} length is ${opt.max} characters.`);
   }
 }();

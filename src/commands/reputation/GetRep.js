@@ -19,7 +19,6 @@
 const {Argument, ArgumentDefault, Command} = require("patron.js");
 const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
-const str = require("../../utilities/string.js");
 
 module.exports = new class GetRepCommand extends Command {
   constructor() {
@@ -39,14 +38,23 @@ module.exports = new class GetRepCommand extends Command {
 
   async run(msg, args) {
     const query = await Database.pool.query(
-      "WITH members AS (SELECT * FROM users u WHERE u.guild_id = $1 and u.in_guild = true)," +
-      "ranked_users AS (SELECT t.reputation, t.user_id, ROW_NUMBER() OVER(ORDER BY t.reputation DESC) as pos FROM members t)" +
-      "SELECT s.pos, s.reputation FROM ranked_users s WHERE s.user_id = $2",
-      [msg.channel.guild.id, args.user.id]
+      "SELECT user_id, reputation FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC",
+      [msg.channel.guild.id]
     );
-    const {pos, reputation} = query.rows[0];
+    const len = query.rows.length - 1;
+    let pos = query.rows.length;
+    let reputation = query.rows[len].reputation;
+
+    for (let i = 0; i < len; i++) {
+      if (query.rows[i].user_id === args.user.id) {
+        pos = i + 1;
+        reputation = query.rows[i].reputation;
+        break;
+      }
+    }
+
     await message.create(msg.channel, {
-      description: `**Reputation:** ${Math.floor(reputation * 100) / 100}\n**Rank:** #${pos}`,
+      description: `**Reputation:** ${reputation.toFixed(2)}\n**Rank:** #${pos}`,
       title: `${message.tag(args.user)}'s Reputation`
     });
   }

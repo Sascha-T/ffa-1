@@ -19,6 +19,23 @@
 const {times} = require("./constants.js");
 
 module.exports = {
+  clockFormat(ms) {
+    let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+    let mins = Math.floor((ms / (1000 * 60)) % 60);
+    let secs = Math.floor((ms / 1000) % 60);
+
+    if (hours < 10)
+      hours = `0${hours}`;
+
+    if (mins < 10)
+      mins = `0${mins}`;
+
+    if (secs < 10)
+      secs = `0${secs}`;
+
+    return `${hours}:${mins}:${secs}`;
+  },
+
   format(timespan) {
     let largest = "";
     let smallest = "";
@@ -36,7 +53,7 @@ module.exports = {
         smallest = time;
     }
 
-    if(largest.length !== 0)
+    if (largest.length !== 0)
       return `${Math.floor(timespan / times[largest])}${largest}`;
 
     return `0${smallest}`;

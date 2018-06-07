@@ -18,31 +18,34 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
-const message = require("../../utilities/message.js");
+const modService = require("../../services/moderation.js");
 
-module.exports = new class UnrepCommand extends Command {
+module.exports = new class UnmuteCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
-        example: "PapaJohn#6666",
-        key: "a",
+        example: "Billy#6969",
+        key: "user",
         name: "user",
         preconditions: ["noself"],
         type: "user"
+      }), new Argument({
+        example: "he apologized",
+        key: "reason",
+        name: "reason",
+        preconditionOptions: [{max: config.max.reasonLength}],
+        preconditions: ["maxlength"],
+        remainder: true,
+        type: "string"
       })],
-      cooldown: config.cd.unrep * 1e3,
-      description: "Remove reputation from any user.",
-      groupName: "reputation",
-      names: ["unrep"],
-      preconditions: ["memberage"]
+      botPermissions: ["manageRoles"],
+      description: "Unmute any guild user.",
+      groupName: "moderation",
+      names: ["unmute"]
     });
   }
 
   async run(msg, args) {
-    const {rep: {decrease}} = await Database.getGuild(msg.channel.guild.id, {rep: "decrease"});
-
-    await Database.changeRep(msg.channel.guild.id, args.a.id, -decrease);
-    await message.reply(msg, `you have successfully unrepped **${message.tag(args.a)}**.`);
+    await modService.unmute(msg, args);
   }
 }();

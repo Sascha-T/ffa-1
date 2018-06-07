@@ -20,7 +20,6 @@ const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
-const str = require("../../utilities/string.js");
 
 module.exports = new class RepCommand extends Command {
   constructor() {
@@ -32,7 +31,7 @@ module.exports = new class RepCommand extends Command {
         preconditions: ["noself"],
         type: "user"
       })],
-      cooldown: config.cd.rep,
+      cooldown: config.cd.rep * 1e3,
       description: "Give reputation to any user.",
       groupName: "reputation",
       names: ["rep"],
@@ -44,6 +43,6 @@ module.exports = new class RepCommand extends Command {
     const {rep: {increase}} = await Database.getGuild(msg.channel.guild.id, {rep: "increase"});
 
     await Database.changeRep(msg.channel.guild.id, args.a.id, increase);
-    await message.reply(msg, `you have successfully repped ${str.bold(message.tag(args.a))}.`);
+    await message.reply(msg, `you have successfully repped **${message.tag(args.a)}**.`);
   }
 }();

@@ -16,26 +16,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+module.exports = {
+  busy: false,
 
-module.exports = new class MemberAgePrecondition extends Precondition {
-  constructor() {
-    super({
-      name: "memberage"
+  dequeue() {
+    this.busy = true;
+    const next = this._queue.shift();
+
+    if (next == null)
+      this.busy = false;
+    else
+      this.execute(next);
+  },
+
+  execute(record) {
+    record[0]().then(record[1], record[2]).then(() => this.dequeue());
+  },
+
+  queue: [],
+
+  synchronize(task) {
+    return new Promise((res, rej) => {
+      this.queue.push([task, res, rej]);
+
+      if (this.busy === false)
+        this.dequeue();
     });
   }
-
-  async run(cmd, msg, opt) {
-    const {ages: {member: memberAge}} = await Database.getGuild(msg.channel.guild.id, {ages: "member"});
-
-    if (msg.member.joinedAt == null || msg.member.joinedAt + memberAge * 1e3 > Date.now()) {
-      return PreconditionResult.fromError(
-        cmd,
-        `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`
-      );
-    }
-
-    return PreconditionResult.fromSuccess();
-  }
-}();
+};

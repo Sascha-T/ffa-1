@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {CommandError} = require("patron.js");
+const {CommandError, Context} = require("patron.js");
 const client = require("../services/client.js");
 const {config} = require("../services/cli.js");
 const Database = require("../services/Database.js");
@@ -24,32 +24,60 @@ const {discordErrorCodes} = require("../utilities/constants.js");
 const handler = require("../services/handler.js");
 const Logger = require("../utilities/Logger.js");
 const message = require("../utilities/message.js");
+const spamService = require("../services/spam.js");
+const time = require("../utilities/time.js");
 const wrapEvent = require("../utilities/wrapEvent.js");
 const cooldowns = {};
-const ratelimited = {};
+const spam = {};
 
 client.on("messageCreate", wrapEvent(async msg => {
-  let guild;
-
   if (msg.author.bot === true || msg.embeds.length !== 0)
     return false;
-  else if (ratelimited[msg.author.id] != null) {
-    if (ratelimited[msg.author.id] < Date.now())
-      return false;
-    else
-      ratelimited[msg.author.id] = undefined;
-  }
+
+  let guild;
 
   if (msg.channel.guild != null) {
     guild = await Database.getGuild(msg.channel.guild.id, {
       channels: "ignored_ids",
       chat: "delay, reward",
-      moderation: "auto_mute",
-      roles: "muted_id"
+      moderation: "auto_mute, case_count",
+      roles: "muted_id",
+      spam: "duration, msg_limit, mute_length, rep_penalty"
     });
 
-    if (guild.moderation.auto_mute === true) {
-      // TODO spam service
+    // TODO logging service
+    if (guild.moderation.auto_mute === true && guild.roles.muted_id != null) {
+      if (spam.hasOwnProperty(msg.author.id) === false ||
+          Date.now() - spam[msg.author.id] > guild.spam.duration * 1e3) {
+        spam[msg.author.id] = {
+          first: Date.now(),
+          count: 1
+        };
+      } else {
+        spam[msg.author.id].count++;
+
+        if (spam[msg.author.id].count >= guild.spam.msg_limit) {
+          const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
+
+          if (mutedRole == null || message.canUseRole(msg.channel.guild, mutedRole) === false ||
+              msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
+            return false;
+
+          try {
+            await Database.pool.query(
+              "INSERT INTO logs(guild_id, user_id, case_number, data, timestamp, type) VALUES($1, $2, $3, $4, $5, 2)",
+              [msg.channel.guild.id, msg.author.id, guild.moderation.case_count, {length: guild.moderation.mute_length}, Math.floor(Date.now() / 1e3)]
+            );
+            await msg.member.addRole(guild.roles.muted_id);
+            await Database.pool.query(
+              "UPDATE moderation SET case_count = case_count + 1 WHERE id = $1",
+              [msg.channel.guild.id]
+            );
+          } catch (e) {}
+
+          return false;
+        }
+      }
     }
 
     if (msg.member.roles.indexOf(guild.roles.muted_id) !== -1 ||
@@ -66,8 +94,8 @@ client.on("messageCreate", wrapEvent(async msg => {
   const result = await handler.run(msg, config.bot.prefix.length);
 
   if (result.commandError === CommandError.CommandNotFound) {
-    // TODO custom commands, cooldown reply, and tag prefix to replies.
-  } else if (result.success === false && result.commandError !== CommandError.Cooldown && result.commandError !== CommandError.InvalidContext) {
+    // TODO custom commands
+  } else if (result.success === false) {
     let reply = "";
 
     if (result.commandError === CommandError.Exception) {
@@ -96,7 +124,14 @@ client.on("messageCreate", wrapEvent(async msg => {
       reply = "I don't have permission to do that.";
     else if (result.commandError === CommandError.MemberPermission)
       reply = "you don't have permission to do that.";
-    else if (result.commandError === CommandError.InvalidArgCount)
+    else if (result.commandError === CommandError.Cooldown)
+      reply = `you may use this command in ${time.clockFormat(result.remaining)}.`;
+    else if (result.commandError === CommandError.InvalidContext) {
+      if (result.context === Context.Guild)
+        reply = "this command may only be used in DMs.";
+      else
+        reply = "this command may only be used in a server.";
+    } else if (result.commandError === CommandError.InvalidArgCount)
       reply = `you are incorrectly using this command.\n**Usage:** \`${config.bot.prefix}${result.command.getUsage()}\`\n**Example:** \`${config.bot.prefix}${result.command.getExample()}\``;
     else if (result.commandError === CommandError.Precondition ||
           result.commandError === CommandError.TypeReader)

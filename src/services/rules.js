@@ -36,7 +36,7 @@ module.exports = {
 
   async getCategories(guildId) {
     const query = await Database.pool.query(
-      "select category, content, mute_length, timestamp from rules where id = $1 order by timestamp asc",
+      "SELECT category, content, mute_length, timestamp FROM rules WHERE id = $1 ORDER BY timestamp ASC",
       [guildId]
     );
     const rules = query.rows;

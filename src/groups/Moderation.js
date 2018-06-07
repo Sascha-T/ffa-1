@@ -16,26 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const {Group} = require("patron.js");
 
-module.exports = new class MemberAgePrecondition extends Precondition {
+module.exports = new class ModerationGroup extends Group {
   constructor() {
     super({
-      name: "memberage"
+      description: "Commands reserved for the most reputable users to moderate the guild.",
+      name: "moderation",
+      preconditionOptions: [null, {column: "mod"}],
+      preconditions: ["maxactions", "top"],
     });
-  }
-
-  async run(cmd, msg, opt) {
-    const {ages: {member: memberAge}} = await Database.getGuild(msg.channel.guild.id, {ages: "member"});
-
-    if (msg.member.joinedAt == null || msg.member.joinedAt + memberAge * 1e3 > Date.now()) {
-      return PreconditionResult.fromError(
-        cmd,
-        `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`
-      );
-    }
-
-    return PreconditionResult.fromSuccess();
   }
 }();

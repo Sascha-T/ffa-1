@@ -54,7 +54,7 @@ function parseNumbers(ini) {
     if (obj.hasOwnProperty(prop) === false || typeof obj[prop] === "boolean")
       continue;
 
-    if (Array.isArray(obj[prop]) === true)
+    if (Array.isArray(obj[prop]) === true) {
       obj[prop] = obj[prop].map(i => {
         if (typeof i === "boolean")
           return i;
@@ -69,14 +69,13 @@ function parseNumbers(ini) {
 
         return i;
       });
-    else if (typeof obj[prop] !== "string")
-      obj[prop] = parseNumbers(obj[prop]);
-    else {
+    } else if (typeof obj[prop] === "string") {
       const number = Number(obj[prop]);
 
       if (Number.isNaN(number) === false && number <= Number.MAX_SAFE_INTEGER)
         obj[prop] = number;
-    }
+    } else
+      obj[prop] = parseNumbers(obj[prop]);
   }
 
   return obj;

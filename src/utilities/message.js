@@ -16,11 +16,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const client = require("../services/client.js");
 const {config} = require("../services/cli.js");
 const random = require("./random.js");
 const str = require("./string.js");
 
 module.exports = {
+  canUseRole(guild, role) {
+    const member = guild.members.get(client.user.id);
+
+    if (member.permission.has("manageRoles") === false)
+      return false;
+
+    const highest = 0;
+
+    for (let i = 0; i < member.roles.length; i++) {
+      const pos = guild.roles.get(member.roles[i]).position;
+
+      if (pos > highest)
+        highest = pos;
+    }
+
+    return highest > role.position;
+  },
+
   colors: config.colors,
 
   create(channel, msg, color, override = false) {
@@ -123,14 +142,14 @@ module.exports = {
       if (typeof reply === "string") {
         result = this.embedify({
           color,
-          description: `${str.bold(this.tag(msg.author))}, ${reply}`
+          description: `**${this.tag(msg.author)}**, ${reply}`
         });
       } else {
-        reply.description = `${str.bold(this.tag(msg.author))}, ${reply.description}`;
+        reply.description = `**${this.tag(msg.author)}**, ${reply.description}`;
         result = this.embedify(reply);
       }
     } else
-      result = `${str.bold(this.tag(msg.author))}, ${result}`;
+      result = `**${this.tag(msg.author)}**, ${result}`;
 
     return msg.channel.createMessage(result);
   },

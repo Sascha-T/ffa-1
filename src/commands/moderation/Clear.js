@@ -17,42 +17,49 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
-const Database = require("../../services/Database.js");
-const message = require("../../utilities/message.js");
-const ruleService = require("../../services/rules.js");
+const {config} = require("../../services/cli.js");
+const modService = require("../../services/moderation.js");
 
-module.exports = new class AddRuleCommand extends Command {
+module.exports = new class ClearCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
-        example: "3b",
+        example: "SteveJr#3333",
+        key: "user",
+        name: "user",
+        preconditions: ["noself", "higherrep"],
+        type: "user"
+      }), new Argument({
+        example: "3a",
         key: "rule",
         name: "rule",
         type: "rule"
       }), new Argument({
-        example: "\"Nutting faster than Willy Wonka\"",
-        key: "content",
-        name: "content",
-        type: "string"
+        defaultValue: config.default.clear,
+        example: 20,
+        key: "quantity",
+        name: "quantity",
+        preconditionOptions: [{max: config.max.clear, min: config.min.clear}],
+        preconditions: ["between"],
+        type: "integer"
       }), new Argument({
         defaultValue: null,
-        example: "420h",
-        key: "muteLen",
-        name: "max mute length",
-        type: "timespan"
+        example: "stop spamming",
+        key: "reason",
+        name: "reason",
+        preconditionOptions: [{max: config.max.reasonLength}],
+        preconditions: ["maxlength"],
+        remainder: true,
+        type: "string"
       })],
-      description: "Modifies any rule.",
-      groupName: "owner",
-      names: ["modifyrule", "editrule", "changerule"]
+      botPermissions: ["manageRoles"],
+      description: "Delete a specified amount of messages sent by any guild user.",
+      groupName: "moderation",
+      names: ["clear", "prune", "purge"]
     });
   }
 
   async run(msg, args) {
-    await Database.pool.query(
-      "UPDATE rules SET content = $1, mute_length = $2 WHERE (id, category, timestamp) = ($3, $4, $5)",
-      [args.content, args.muteLen, msg.channel.guild.id, args.rule.category, args.rule.timestamp]
-    );
-    await message.reply(msg, "you have successfully modified this rule.");
-    await ruleService.update(msg.channel.guild.id);
+    await modService.clear(msg, args);
   }
 }();

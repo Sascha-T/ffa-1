@@ -49,7 +49,7 @@ module.exports = new class AddRuleCommand extends Command {
 
   async run(msg, args) {
     await Database.pool.query(
-      "insert into rules(id, category, content, mute_length, timestamp) values($1, $2, $3, $4, $5)",
+      "INSERT INTO rules(id, category, content, mute_length, timestamp) VALUES($1, $2, $3, $4, $5)",
       [msg.channel.guild.id, args.category, args.content, args.muteLen, Math.floor(Date.now() / 1e3)]
     );
     await message.reply(msg, "you have successfully added a new rule.");

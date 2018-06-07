@@ -22,7 +22,7 @@ const wrapEvent = require("../utilities/wrapEvent.js");
 
 client.on("guildMemberRemove", wrapEvent(async (guild, member) => {
   await Database.pool.query(
-    "update users set in_guild = false where (guild_id, user_id) = ($1, $2)",
+    "UPDATE users SET in_guild = false WHERE (guild_id, user_id) = ($1, $2)",
     [guild.id, member.id]
   );
 }));

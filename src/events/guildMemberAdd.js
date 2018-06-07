@@ -18,11 +18,18 @@
 "use strict";
 const client = require("../services/client.js");
 const Database = require("../services/Database.js");
+const modService = require("../services/moderation.js");
 const wrapEvent = require("../utilities/wrapEvent.js");
 
 client.on("guildMemberAdd", wrapEvent(async (guild, member) => {
   await Database.pool.query(
-    "update users set in_guild = true where (guild_id, user_id) = ($1, $2)",
+    "UPDATE users SET in_guild = true WHERE (guild_id, user_id) = ($1, $2)",
     [guild.id, member.id]
   );
+
+  const isMuted = await modService.isMuted(guild.id, member.id);
+  const {roles: {muted_id}} = Database.getGuild(guild.id, {roles: "muted_id"});
+
+  if (isMuted === true && muted_id != null)
+    await member.addRole(muted_id);
 }));

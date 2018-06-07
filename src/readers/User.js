@@ -18,8 +18,7 @@
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
 const client = require("../services/client.js");
-const regexes = require("../utilities/regexes.js"); // TODO fix username matching
-const registry = require("../services/registry.js");
+const regexes = require("../utilities/regexes.js");
 
 module.exports = new class UserReader extends TypeReader {
   constructor() {
@@ -47,7 +46,7 @@ module.exports = new class UserReader extends TypeReader {
         if (member != null)
           return TypeReaderResult.fromSuccess(member.user);
       } else {
-        let discrim = val.slice(index + 1);
+        const discrim = val.slice(index + 1);
         const username = val.slice(0, index);
 
         if (regexes.discrim.test(discrim) === true) {

@@ -27,11 +27,11 @@ module.exports = new class RuleReader extends TypeReader {
     });
   }
 
-  async read(cmd, msg, arg, args, val, me) {
+  async read(cmd, msg, arg, args, val) {
     const result = val.match(number);
 
     if (result != null) {
-      const categories = await ruleService.getCategories(me, msg.channel.guild.id);
+      const categories = await ruleService.getCategories(msg.channel.guild.id);
       const category = Number(result[0]) - 1;
 
       if (Number.isInteger(category) && categories.length > category && category > -1) {
@@ -41,7 +41,10 @@ module.exports = new class RuleReader extends TypeReader {
           rule = ruleService.countLetters(rule);
 
           if (rule < categories[category].length)
-            return TypeReaderResult.fromSuccess(categories[category][rule]);
+            return TypeReaderResult.fromSuccess({
+              content: categories[category][rule],
+              name: val
+            });
         }
 
         return TypeReaderResult.fromError(cmd, "you have provided invalid rule letters.");

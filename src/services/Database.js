@@ -27,13 +27,13 @@ module.exports = new class Database {
 
   async changeRep(guildId, userId, change) {
     return this.pool.query(
-      "insert into users(guild_id, user_id, reputation) values($1, $2, $3) on conflict (guild_id, user_id) do update set reputation = users.reputation + $3 where (users.guild_id, users.user_id) = ($1, $2)",
+      "INSERT INTO users(guild_id, user_id, reputation) VALUES($1, $2, $3) ON CONFLICT (guild_id, user_id) DO UPDATE SET reputation = users.reputation + $3 WHERE (users.guild_id, users.user_id) = ($1, $2)",
       [guildId, userId, change]
     );
   }
 
   async findNeededColumns(table) {
-    const query = await this.pool.query(`select column_name, is_nullable, column_default from information_schema.columns where (table_schema, table_name) = ('public', '${table}')`);
+    const query = await this.pool.query(`SELECT column_name, is_nullable, column_default FROM information_schema.columns WHERE (table_schema, table_name) = ('public', '${table}')`);
     // The only columns that need defaults are the not null ones
     // with no PostgreSQL default value, the id column being exempt from that as a primary key.
     const needed = query.rows.filter(c => c.is_nullable === "NO" && c.column_default == null && c.column_name !== "id");
@@ -54,21 +54,21 @@ module.exports = new class Database {
       if (tables.hasOwnProperty(table) === false)
         continue;
 
-      res[table] = await this.getFirstRow(`select ${tables[table]} from ${table} where id = $1`, [id]);
+      res[table] = await this.getFirstRow(`SELECT ${tables[table]} FROM ${table} WHERE id = $1`, [id]);
 
       if (res[table] == null && typeof id === "string") {
         const needed = await this.findNeededColumns(table);
 
         if (needed.length === 0) {
           res[table] = await this.getFirstRow(
-            `insert into ${table}(id) values($1) on conflict (id) do nothing returning ${tables[table]}`,
+            `INSERT INTO ${table}(id) VALUES($1) ON CONFLICT (id) DO NOTHING RETURNING ${tables[table]}`,
             [id]
           );
         } else {
           const neededStr = needed.join(", ");
-          const defaultValues = await this.getFirstRow(`select ${neededStr} from ${table} where id = $1`, [this.baseGuildId]);
+          const defaultValues = await this.getFirstRow(`SELECT ${neededStr} FROM ${table} WHERE id = $1`, [this.baseGuildId]);
           res[table] = await this.getFirstRow(
-            `insert into ${table}(id, ${neededStr}) values($1, ${this.stringifyQuery(needed.length)}) on conflict (id) do nothing returning ${tables[table]}`,
+            `INSERT INTO ${table}(id, ${neededStr}) VALUES($1, ${this.stringifyQuery(needed.length)}) ON CONFLICT (id) DO NOTHING RETURNING ${tables[table]}`,
             [id, ...this.sortDefaultValues(defaultValues, needed)]
           );
         }
@@ -80,7 +80,7 @@ module.exports = new class Database {
 
   async getUser(guildId, userId, columns = "*") {
     return this.pool.query(
-      `insert into users(guild_id, user_id) values($1, $2) on conflict (guild_id, user_id) do nothing returning ${columns}`,
+      `INSERT INTO users(guild_id, user_id) VALUES($1, $2) ON CONFLICT (guild_id, user_id) DO NOTHING RETURNING ${columns}`,
       [guildId, userId]
     );
   }

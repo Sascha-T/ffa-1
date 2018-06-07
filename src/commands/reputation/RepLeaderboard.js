@@ -17,32 +17,40 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const client = require("../../services/client.js");
 const {config} = require("../../services/cli.js");
 const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 
-module.exports = new class UnrepCommand extends Command {
+module.exports = new class RepLeaderboardCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
-        example: "PapaJohn#6666",
-        key: "a",
-        name: "user",
-        preconditions: ["noself"],
-        type: "user"
+        defaultValue: config.default.lb,
+        example: "15",
+        key: "count",
+        name: "count",
+        preconditionOptions: [{max: config.max.lb, min: config.min.lb}],
+        preconditions: ["between"],
+        type: "integer"
       })],
-      cooldown: config.cd.unrep * 1e3,
-      description: "Remove reputation from any user.",
+      description: "The most reputable users.",
       groupName: "reputation",
-      names: ["unrep"],
-      preconditions: ["memberage"]
+      names: ["repleaderboard", "replb", "top", "toprep"]
     });
   }
 
   async run(msg, args) {
-    const {rep: {decrease}} = await Database.getGuild(msg.channel.guild.id, {rep: "decrease"});
+    const query = await Database.pool.query(
+      "SELECT user_id, reputation FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC LIMIT $2",
+      [msg.channel.guild.id, args.count]
+    );
 
-    await Database.changeRep(msg.channel.guild.id, args.a.id, -decrease);
-    await message.reply(msg, `you have successfully unrepped **${message.tag(args.a)}**.`);
+    await message.create(msg.channel, {
+      description: query.rows.map((r, i) => {
+        return `${i + 1}. **${message.tag(client.users.get(r.user_id))}**: ${r.reputation.toFixed(2)}`;
+      }).join("\n"),
+      title: "The Most Reputable Users"
+    });
   }
 }();

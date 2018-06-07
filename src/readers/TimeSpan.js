@@ -28,7 +28,7 @@ module.exports = new class TimeSpanReader extends TypeReader {
     });
   }
 
-  async read(cmd, msg, arg, args, val, me) {
+  async read(cmd, msg, arg, args, val) {
     let result = val.match(number);
 
     if (result != null) {

@@ -16,26 +16,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const client = require("../services/client.js");
+const Database = require("../services/Database.js");
+const wrapEvent = require("../utilities/wrapEvent.js");
 
-module.exports = new class MemberAgePrecondition extends Precondition {
-  constructor() {
-    super({
-      name: "memberage"
-    });
-  }
+client.on("guildRoleDelete", wrapEvent(async (guild, role) => {
+  const {roles} = await Database.getGuild(guild.id, {roles: "muted_id"});
 
-  async run(cmd, msg, opt) {
-    const {ages: {member: memberAge}} = await Database.getGuild(msg.channel.guild.id, {ages: "member"});
-
-    if (msg.member.joinedAt == null || msg.member.joinedAt + memberAge * 1e3 > Date.now()) {
-      return PreconditionResult.fromError(
-        cmd,
-        `this command may only be used by members who have been in this guild for at least ${Math.floor(memberAge / 8640) / 10} days.`
-      );
-    }
-
-    return PreconditionResult.fromSuccess();
-  }
-}();
+  if (role.id === roles.muted_id)
+    await Database.pool.query("UPDATE roles SET muted_id = null WHERE id = $1", [guild.id]);
+}));

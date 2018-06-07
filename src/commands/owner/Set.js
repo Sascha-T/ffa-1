@@ -48,7 +48,7 @@ module.exports = new class SetCommand extends Command {
 
   async run(msg, args) {
     const column = await Database.pool.query(
-      `select data_type from information_schema.columns where (table_schema, table_name, column_name) = ('public', $1, $2)`,
+      `SELECT data_type FROM information_schema.columns WHERE (table_schema, table_name, column_name) = ('public', $1, $2)`,
       [args.table, args.column]
     );
 
@@ -64,13 +64,13 @@ module.exports = new class SetCommand extends Command {
         );
       } else if (type.indexOf("int") !== -1 || type === "real") {
         await Database.pool.query(
-          `update ${args.table} set ${args.column} = $1 where id = $2`,
+          `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
           [Number(args.value), msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
       } else if (type === "character varying") {
         await Database.pool.query(
-          `update ${args.table} set ${args.column} = $1 where id = $2`,
+          `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
           [args.value, msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
