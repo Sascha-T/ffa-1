@@ -18,6 +18,7 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
+const message = require("../../utility/message.js");
 const modService = require("../../services/moderation.js");
 
 module.exports = new class ClearCommand extends Command {
@@ -60,6 +61,23 @@ module.exports = new class ClearCommand extends Command {
   }
 
   async run(msg, args) {
-    await modService.clear(msg, args);
+    const amount = await msg.channel.purge(args.quantity, m => m.author.id === args.user.id);
+
+    if (amount === 0)
+      await message.reply(msg, "there are no messages to delete.");
+    else {
+      await modService.addLog({
+        data: {
+          mod_id: msg.author.id,
+          quantity: amount,
+          reason: args.reason,
+          rule: args.rule.content
+        },
+        guild_id: msg.channel.guild.id,
+        type: 4,
+        user_id: args.user.id
+      }, config.customColors.clear);
+      await message.reply(msg, `you have successfully deleted ${args.quantity} messages sent by **${message.tag(args.user)}**.`);
+    }
   }
 }();

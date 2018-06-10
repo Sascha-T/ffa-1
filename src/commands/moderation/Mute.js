@@ -40,8 +40,6 @@ module.exports = new class MuteCommand extends Command {
         example: "8h",
         key: "length",
         name: "length",
-        preconditionOptions: [{min: config.min.muteLength}],
-        preconditions: ["between"],
         type: "timespan"
       }), new Argument({
         defaultValue: null,

@@ -24,7 +24,7 @@ const {discordErrorCodes} = require("../utilities/constants.js");
 const handler = require("../services/handler.js");
 const Logger = require("../utilities/Logger.js");
 const message = require("../utilities/message.js");
-const spamService = require("../services/spam.js");
+const modService = require("../services/moderation.js");
 const time = require("../utilities/time.js");
 const wrapEvent = require("../utilities/wrapEvent.js");
 const cooldowns = {};
@@ -40,12 +40,11 @@ client.on("messageCreate", wrapEvent(async msg => {
     guild = await Database.getGuild(msg.channel.guild.id, {
       channels: "ignored_ids",
       chat: "delay, reward",
-      moderation: "auto_mute, case_count",
+      moderation: "auto_mute, case_count, mute_length",
       roles: "muted_id",
       spam: "duration, msg_limit, mute_length, rep_penalty"
     });
 
-    // TODO logging service
     if (guild.moderation.auto_mute === true && guild.roles.muted_id != null) {
       if (spam.hasOwnProperty(msg.author.id) === false ||
           Date.now() - spam[msg.author.id] > guild.spam.duration * 1e3) {
@@ -59,28 +58,20 @@ client.on("messageCreate", wrapEvent(async msg => {
         if (spam[msg.author.id].count >= guild.spam.msg_limit) {
           const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
 
-          if (mutedRole == null || message.canUseRole(msg.channel.guild, mutedRole) === false ||
+          if (mutedRole == null ||
               msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
             return false;
 
-          try {
-            await Database.pool.query(
-              "INSERT INTO logs(guild_id, user_id, case_number, data, timestamp, type) VALUES($1, $2, $3, $4, $5, 2)",
-              [msg.channel.guild.id, msg.author.id, guild.moderation.case_count, {length: guild.moderation.mute_length}, Math.floor(Date.now() / 1e3)]
-            );
-            await msg.member.addRole(guild.roles.muted_id);
-            await Database.pool.query(
-              "UPDATE moderation SET case_count = case_count + 1 WHERE id = $1",
-              [msg.channel.guild.id]
-            );
-          } catch (e) {}
+          await modService.autoMute(msg, guild.moderation.mute_length);
 
           return false;
         }
       }
     }
 
-    if (msg.member.roles.indexOf(guild.roles.muted_id) !== -1 ||
+    const isMuted = await modService.isMuted(msg.channel.guild.id, msg.author.id);
+
+    if (isMuted === true || msg.member.roles.indexOf(guild.roles.muted_id) !== -1 ||
         guild.channels.ignored_ids.indexOf(msg.channel.id) !== -1)
       return false;
 

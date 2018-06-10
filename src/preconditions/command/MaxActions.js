@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const Database = require("../../services/Database.js");
 const maxActions = {};
 
@@ -25,6 +26,17 @@ module.exports = new class MaxActionsPrecondition extends Precondition {
     super({
       name: "maxactions"
     });
+  }
+
+  async loop() {
+    for (const key in maxActions) {
+      if (maxActions.hasOwnProperty(key) === false)
+        continue;
+
+      maxActions[key] = {first: 0};
+    }
+
+    setTimeout(() => this.loop(), config.timer.resetActions);
   }
 
   async run(cmd, msg) {

@@ -21,6 +21,7 @@ const {config} = require("./cli.js");
 const Database = require("./Database.js");
 const message = require("../utilities/message.js");
 const str = require("../utilities/string.js");
+const time = require("../utilities/time.js");
 
 module.exports = {
   async addLog(log, color) {
@@ -28,10 +29,7 @@ module.exports = {
       channels: "log_id",
       moderation: "case_count"
     });
-    const dup = await this.checkForDup(log, case_count + 1);
-
-    if (dup === true)
-      return false;
+    let msg;
 
     await Database.pool.query(
       "INSERT INTO logs(case_number, data, guild_id, timestamp, type, user_id) VALUES($1, $2, $3, $4, $5, $6)",
@@ -42,7 +40,7 @@ module.exports = {
       const channel = client.getChannel(log_id);
 
       if (channel != null) {
-        await message.create(channel, {
+        msg = await message.create(channel, {
           author: log.data.mod_id == null ? null : {name: message.tag(log.data.mod_id)},
           description: this.describeLog(log),
           footer: {text: `Case #${case_count + 1}`},
@@ -52,49 +50,67 @@ module.exports = {
     }
 
     await Database.pool.query("UPDATE moderation SET case_count = case_count + 1 WHERE id = $1", [log.guild_id]);
+
+    return msg;
+  },
+
+  autoMute(msg, length) {
+    return this.sync(msg.channel.guild.id, async () => {
+      const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild_id, {roles: "muted_id"});
+
+      if (muted_id == null || msg.channel.guild.roles.get(muted_id) == null)
+        return false;
+
+      const isMuted = await this.isMuted(msg.channel.guild.id, msg.author.id);
+
+      if (isMuted === true)
+        return false;
+
+      const data = {
+        data: {length},
+        guild_id: msg.channel.guild.id,
+        type: 2,
+        user_id: msg.author.id
+      };
+      const logMsg = await this.addLog(data, config.customColors.mute);
+
+      try {
+        await msg.channel.guild.members.get(msg.author.id).addRole(muted_id);
+      } catch (e) {
+        await this.removeLog(e, data, logMsg, true);
+      }
+    });
+  },
+
+  autoUnmute(log) {
+    return this.sync(log.guild_id, async () => {
+      const {roles: {muted_id}} = await Database.getGuild(log.guild_id, {roles: "muted_id"});
+
+      if (muted_id == null || client.guilds.get(log.guild_id).roles.get(muted_id) == null)
+        return true;
+
+      const isMuted = await this.isMuted(log.guild_id, log.user_id);
+
+      if (isMuted === false)
+        return false;
+
+      const data = {
+        guild_id: log.guild_id,
+        type: 3,
+        user_id: log.user_id
+      };
+      const logMsg = await this.addLog(data, config.customColors.unmute);
+
+      try {
+        await client.removeGuildMemberRole(log.guild_id, log.user_id, muted_id);
+      } catch (e) {
+        await this.removeLog(e, data, logMsg, true);
+        return false;
+      }
+    });
   },
 
   busy: {},
-
-  checkForDup(log) {
-    return this.sync(log.guild_id, async () => {
-      const query = await Database.pool.query(
-        "SELECT case_number FROM logs WHERE guild_id = $1 AND timestamp > current_timestamp - interval '5 seconds'",
-        [log.guild_id]
-      );
-
-      for (let i = 0; i < query.rows.length; i++) {
-        if (query.rows[i].case_number === log.case_number)
-          return true;
-        else if (query.rows[i].user_id !== log.user_id)
-          continue;
-        else if (query.rows[i].type !== log.type)
-          continue;
-
-        if (log.data != null) {
-          let valid = true;
-
-          for (const key in query.rows[i].data) {
-            if (query.rows[i].data.hasOwnProperty(key) === false)
-              continue;
-
-            if (query.rows[i].data[key] !== log.data[key]) {
-              valid = false;
-              break;
-            }
-          }
-
-          if (valid === false)
-            continue;
-        } else if (query.rows[i].data != null)
-          continue;
-
-        return true;
-      }
-
-      return false;
-    });
-  },
 
   async describeLog(log) {
     let action = "Mute";
@@ -133,28 +149,86 @@ module.exports = {
     record[0]().then(record[1], record[2]).then(() => this.dequeue(guildId));
   },
 
-  async mute(msg, args) {
-    const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild_id, {roles: "muted_id"});
+  async isMuted(guild, userId, mutedRole) {
+    let query = await Database.pool.query(
+      "SELECT data, timestamp FROM logs WHERE guild_id = $1 AND user_id = $2 AND type = 0 OR type = 2 ORDER BY timestamp DESC LIMIT 1",
+      [guild.id, userId]
+    );
 
-    if (muted_id == null || msg.channel.guild.roles.get(muted_id) == null)
-      throw new Error("the muted role has not been set.");
+    if (guild.members.get(userId).roles.indexOf(mutedRole) !== -1 || query.rows.length === 0 ||
+        query.rows[0].data.unmuted === true ||
+        Math.floor(Date.now() / 1e3) - query.rows[0].timestamp >= query.rows[0].data.length)
+      return false;
 
-    const res = await this.addLog({
-      data: {
-        length: args.length,
-        reason: args.reason,
-        rule: args.rule.content
-      },
-      guild_id: msg.channel.guild.id,
-      type: 0,
-      user_id: args.user.id
-    }, config.customColors.mute);
+    let muteTimestamp = query.rows.length === 0 ? null : query.rows[0].timestamp;
+    query = await Database.pool.query(
+      "SELECT data, timestamp FROM logs WHERE guild_id = $1 AND user_id = $2 AND type = 1 OR type = 3 ORDER BY timestamp DESC LIMIT 1",
+      [guild.id, userId]
+    );
 
-    if (res !== false)
-      await msg.channel.guild.members.get(args.user.id).addRole(muted_id);
+    if (query.rows.length !== 0 && query.rows[0].timestamp > muteTimestamp)
+      return false;
+
+    return true;
+  },
+
+  mute(msg, args) {
+    return this.sync(msg.channel.guild.id, async () => {
+      const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild_id, {roles: "muted_id"});
+
+      if (muted_id == null || msg.channel.guild.roles.get(muted_id) == null)
+        throw new Error("the muted role has not been set.");
+
+      const isMuted = await this.isMuted(msg.channel.guild.id, args.user.id);
+
+      if (isMuted === true)
+        return message.reply(msg, "this command may not be used on a muted user.");
+
+      const data = {
+        data: {
+          length: args.length,
+          mod_id: msg.author.id,
+          reason: args.reason,
+          rule: args.rule.content
+        },
+        guild_id: msg.channel.guild.id,
+        type: 0,
+        user_id: args.user.id
+      };
+      const logMsg = await this.addLog(data, config.customColors.mute);
+
+      try {
+        await msg.channel.guild.members.get(args.user.id).addRole(muted_id);
+      }catch (e) {
+        await this.removeLog(e, data, logMsg);
+      }
+
+      const tag = message.tag(msg.author);
+      await message.dm(args.user, `**${tag}** has muted you for **${time.format(args.length)}** for breaking the follow\
+ing rule:${str.code(args.rule.content, "")}${args.reason}\n**If this mute was unjustified or invalid, there are several\
+ steps you must take to vindicate yourself:**\n\n**1.** You must \`${config.bot.prefix}unrep "${tag}"\`. This is essent\
+ial as it will prevent **${tag}** from unjustly muting others. This command must be used inside a guild channel. If the\
+re are no channels dedicated to allow muted users to use commands, please contact **\
+${message.tag(msg.channel.guild.members.get(msg.channel.guild.ownerID))}**.\n\n**2.** You must use \`${config.bot.prefix}\
+replb 30\` to DM these moderators with undeniable proof of your innocence. You must explain in detail why **${tag}'s** \
+mute was invalid, and why it should be reverted.\n\n**3.** You must ensure **${tag}** get's muted for unlawful punishme\
+nt. You may do this by lobbying other moderators, or by gaining enough reputation to do it yourself. If there is no unl\
+awful punishment rule, create a poll which adds it, and lobby other users to vote in favor of said poll.`).catch(e => {});
+    });
   },
 
   queues: {},
+
+  async removeLog(err, msg, case_number, silent = false) {
+    await Database.pool.query(
+      "DROP FROM logs WHERE case_number = $1",
+      [case_number]
+    );
+    await msg.delete();
+
+    if (silent === false)
+      throw err;
+  },
 
   sync(guildId, task) {
     return new Promise((res, rej) => {
@@ -171,23 +245,34 @@ module.exports = {
     });
   },
 
-  async unmute(msg, args) {
-    const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild_id, {roles: "muted_id"});
+  unmute(msg, args) {
+    return this.sync(msg.channel.guild.id, async () => {
+      const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild.id, {roles: "muted_id"});
 
-    if (muted_id == null || msg.channel.guild.roles.get(muted_id) == null)
-      throw new Error("the muted role has not been set.");
+      if (muted_id == null || msg.channel.guild.roles.get(muted_id) == null)
+        throw new Error("the muted role has not been set.");
 
-    // TODO confirm person is muted, isMuted method?
+      const isMuted = await this.isMuted(msg.channel.guild.id, args.user.id);
 
-    const res = await this.addLog({
-      data: {reason: args.reason},
-      guild_id: msg.channel.guild.id,
-      type: 1,
-      user_id: args.user.id
-    }, config.customColors.unmute);
+      if (isMuted === false)
+        return message.reply(msg, "this command may only be used on a muted user.");
 
-    // TODO confirm user has role
-    if (res !== false)
-      await msg.channel.guild.members.get(args.user.id).removeRole(muted_id);
+      const data = {
+        data: {
+          mod_id: msg.author.id,
+          reason: args.reason
+        },
+        guild_id: msg.channel.guild.id,
+        type: 1,
+        user_id: args.user.id
+      };
+
+      const logMsg = await this.addLog(data, config.customColors.unmute);
+      try {
+        await msg.channel.guild.members.get(args.user.id).removeRole(muted_id);
+      } catch (e) {
+        await this.removeLog(e, data, logMsg);
+      }
+    });
   }
 };

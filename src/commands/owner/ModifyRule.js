@@ -17,6 +17,7 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
+const {config} = require("../../services/cli.js");
 const Database = require("../../services/Database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
@@ -39,6 +40,8 @@ module.exports = new class AddRuleCommand extends Command {
         example: "420h",
         key: "muteLen",
         name: "max mute length",
+        preconditionOptions: [{max: config.max.mute, min: config.min.mute}],
+        preconditions: ["between"],
         type: "timespan"
       })],
       description: "Modifies any rule.",

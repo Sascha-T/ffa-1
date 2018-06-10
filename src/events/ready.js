@@ -20,8 +20,14 @@ const client = require("../services/client.js");
 const {config} = require("../services/cli.js");
 const Database = require("../services/Database.js");
 const Logger = require("../utilities/Logger.js");
+const path = require("path");
+const {RequireAll} = require("patron.js");
 const str = require("../utilities/string.js");
 const wrapEvent = require("../utilities/wrapEvent.js");
+
+async function reqAbs(dir) {
+  return RequireAll(path.join(__dirname, dir));
+}
 
 client.on("ready", wrapEvent(async () => {
   await client.editStatus({name: str.format(config.bot.game, config.bot.prefix)});
@@ -67,5 +73,7 @@ client.on("ready", wrapEvent(async () => {
     }
   }
 
+  await reqAbs("../timers");
+  await require("../preconditions/command/MaxActions.js").loop();
   Logger.info("READY");
 }));
