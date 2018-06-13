@@ -18,7 +18,7 @@
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class MaxLength extends ArgumentPrecondition {
+module.exports = new class MaxLengthArgumentPrecondition extends ArgumentPrecondition {
   constructor() {
     super({
       name: "maxlength"

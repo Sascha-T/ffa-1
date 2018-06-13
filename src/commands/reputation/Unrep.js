@@ -28,7 +28,7 @@ module.exports = new class UnrepCommand extends Command {
         example: "PapaJohn#6666",
         key: "a",
         name: "user",
-        preconditions: ["noself"],
+        preconditions: ["noself", "nobot"],
         type: "user"
       })],
       cooldown: config.cd.unrep * 1e3,

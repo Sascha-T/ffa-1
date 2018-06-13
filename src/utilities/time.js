@@ -20,9 +20,9 @@ const {times} = require("./constants.js");
 
 module.exports = {
   clockFormat(ms) {
-    let hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-    let mins = Math.floor((ms / (1000 * 60)) % 60);
-    let secs = Math.floor((ms / 1000) % 60);
+    let hours = Math.floor((ms / 36e5) % 24);
+    let mins = Math.floor((ms / 6e4) % 60);
+    let secs = Math.floor((ms / 1e3) % 60);
 
     if (hours < 10)
       hours = `0${hours}`;
@@ -37,14 +37,14 @@ module.exports = {
   },
 
   format(timespan) {
-    let largest = "";
-    let smallest = "";
+    let largest = "s";
+    let smallest = "s";
 
     for (const time in times) {
       if (times.hasOwnProperty(time) === false)
         continue;
 
-      if (timespan > times[time])
+      if (times[largest] < times[time] && timespan > times[time])
         largest = time;
       else if (timespan === times[time])
         return `1${time}`;
@@ -54,7 +54,7 @@ module.exports = {
     }
 
     if (largest.length !== 0)
-      return `${Math.floor(timespan / times[largest])}${largest}`;
+      return `${Math.floor(timespan / times[largest] * 10) / 10}${largest}`;
 
     return `0${smallest}`;
   }

@@ -16,25 +16,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Command, Context} = require("patron.js");
-const message = require("../../utilities/message.js");
-const registry = require("../../services/registry.js");
+const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
+const client = require("../../services/client.js");
 
-module.exports = new class ModulesCommand extends Command {
+module.exports = new class NoFFAArgumentPrecondition extends ArgumentPrecondition {
   constructor() {
     super({
-      description: "List of all the command modules.",
-      groupName: "system",
-      names: ["modules", "categories", "groups", "modulelist", "categorylist", "grouplist"],
-      usableContexts: [Context.DM, Context.Guild]
+      name: "noffa"
     });
-    this.uses = 0;
   }
 
-  async run(msg, args) {
-    await message.create(msg.channel, {
-      description: message.list(registry.groups, "name", "description"),
-      title: "Modules"
-    });
+  async run(cmd, msg, arg, args, val) {
+    if (val.id === client.user.id)
+      return PreconditionResult.fromError(cmd, "this command may not be used on me.");
+
+    return PreconditionResult.fromSuccess();
   }
 }();

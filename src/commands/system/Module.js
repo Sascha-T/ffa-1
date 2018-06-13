@@ -19,32 +19,41 @@
 const {Argument, Command, Context} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
-const string = require("../../utilities/string.js");
+const registry = require("../../services/registry.js");
+const str = require("../../utilities/string.js");
 
 module.exports = new class ModuleCommand extends Command {
   constructor() {
     super({
       args: [new Argument({
+        defaultValue: false,
         example: "system",
-        key: "a",
+        key: "group",
         name: "name",
         type: "group"
       })],
-      description: "List of all commands in a specific module.",
+      description: "List of all commands in a module if one is provided. If not, all modules are listed.",
       groupName: "system",
-      names: ["module", "category", "group"],
+      names: ["module", "modules", "category", "categories", "group", "groups", "modulelist", "categorylist", "grouplist"],
       usableContexts: [Context.DM, Context.Guild]
     });
     this.uses = 0;
   }
 
   async run(msg, args) {
-    await message.create(msg.channel, {
-      description: message.list(args.a.commands.map(cmd => ({
-        description: cmd.description,
-        name: `${config.bot.prefix}${cmd.names[0]}`
-      })), "name", "description"),
-      title: `${string.capitalize(args.a.name)}'s Commands`
-    });
+    if (args.group === false) {
+      await message.create(msg.channel, {
+        description: message.list(registry.groups, "name", "description"),
+        title: "Modules"
+      });
+    } else {
+      await message.create(msg.channel, {
+        description: message.list(args.group.commands.map(cmd => ({
+          description: cmd.description,
+          name: `${config.bot.prefix}${cmd.names[0]}`
+        })), "name", "description"),
+        title: `${str.pluralize(str.capitalize(args.group.name))} Commands`
+      });
+    }
   }
 }();

@@ -59,17 +59,17 @@ module.exports = new class Database {
       if (res[table] == null && typeof id === "string") {
         const needed = await this.findNeededColumns(table);
 
-        if (needed.length === 0) {
-          res[table] = await this.getFirstRow(
-            `INSERT INTO ${table}(id) VALUES($1) ON CONFLICT (id) DO NOTHING RETURNING ${tables[table]}`,
-            [id]
-          );
-        } else {
+        if (needed.length === 0)
+          res[table] = await this.upsert(table, "id", [id], tables[table]);
+        else {
           const neededStr = needed.join(", ");
-          const defaultValues = await this.getFirstRow(`SELECT ${neededStr} FROM ${table} WHERE id = $1`, [this.baseGuildId]);
-          res[table] = await this.getFirstRow(
-            `INSERT INTO ${table}(id, ${neededStr}) VALUES($1, ${this.stringifyQuery(needed.length)}) ON CONFLICT (id) DO NOTHING RETURNING ${tables[table]}`,
-            [id, ...this.sortDefaultValues(defaultValues, needed)]
+          const defaultValues = await this.getFirstRow(
+            `SELECT ${neededStr} FROM ${table} WHERE id = $1`,
+            [this.baseGuildId]
+          );
+          res[table] = await this.upsert(
+            table, `id, ${neededStr}`,
+            [id, ...this.sortDefaultValues(defaultValues, needed)], tables[table]
           );
         }
       }
@@ -79,10 +79,7 @@ module.exports = new class Database {
   }
 
   async getUser(guildId, userId, columns = "*") {
-    return this.pool.query(
-      `INSERT INTO users(guild_id, user_id) VALUES($1, $2) ON CONFLICT (guild_id, user_id) DO NOTHING RETURNING ${columns}`,
-      [guildId, userId]
-    );
+    return this.upsert("users", "guild_id, user_id", [guildId, userId], columns);
   }
 
   sortDefaultValues(row, needed) {
@@ -97,7 +94,6 @@ module.exports = new class Database {
   stringifyQuery(count) {
     // Table will always have id and at least one other column
     // that's needed, so the for loop needs to start at $3.
-    /* eslint-disable-next-line no-magic-numbers */
     const len = count + 2;
     let values = "$2";
 
@@ -105,5 +101,26 @@ module.exports = new class Database {
       values += `, $${i}`;
 
     return values;
+  }
+
+  async upsert(table, columns, values, returns) {
+    const valueStr = this.stringifyQuery(values.length - 1);
+    let query = await this.getFirstRow(
+      `SELECT ${returns} FROM ${table} WHERE (${columns}) = ($1, ${valueStr})`,
+      values
+    );
+
+    if (query == null) {
+      await this.pool.query(
+        `INSERT INTO ${table}(${columns}) VALUES($1, ${valueStr}) ON CONFLICT (${columns}) DO NOTHING`,
+        values
+      );
+      query = await this.getFirstRow(
+        `SELECT ${returns} FROM ${table} WHERE (${columns}) = ($1, ${valueStr})`,
+        values
+      );
+    }
+
+    return query;
   }
 };

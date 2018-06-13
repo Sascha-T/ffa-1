@@ -29,7 +29,7 @@ module.exports = new class MuteCommand extends Command {
         example: "Jimbo#5555",
         key: "user",
         name: "user",
-        preconditions: ["noself", "higherrep"],
+        preconditions: ["noself", "noffa", "higherrep"],
         type: "user"
       }), new Argument({
         example: "2c",
@@ -59,10 +59,15 @@ module.exports = new class MuteCommand extends Command {
   }
 
   async run(msg, args) {
-    if (args.rule.mute_length != null && args.length > args.rule.mute_length) {
+    if (args.rule.content.mute_length != null && args.length > args.rule.content.mute_length) {
       await message.replyError(
         msg,
         `the maximum mute length of this rule is ${time.format(args.rule.mute_length)}.`
+      );
+    } else if (args.length < config.min.mute) {
+      return message.reply(
+        msg,
+        `the mute length must be longer than ${time.format(config.min.mute)}.`
       );
     } else
       await modService.mute(msg, args);

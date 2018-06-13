@@ -39,7 +39,7 @@ module.exports = new class AddRuleCommand extends Command {
   async run(msg, args) {
     await Database.pool.query(
       "DELETE FROM rules WHERE (id, category, timestamp) = ($1, $2, $3)",
-      [msg.channel.guild.id, args.rule.category, args.rule.timestamp]
+      [msg.channel.guild.id, args.rule.category.toLowerCase(), args.rule.timestamp]
     );
     await message.reply(msg, "you have successfully removed this rule.");
     await ruleService.update(msg.channel.guild.id);

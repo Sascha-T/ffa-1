@@ -19,10 +19,6 @@
 const {format, markdown, uppercase} = require("./regexes.js");
 
 module.exports = {
-  bold(str) {
-    return `**${str}**`;
-  },
-
   capitalize(str) {
     return str.replace(uppercase, x => String.fromCharCode(x.charCodeAt(0) ^ 32));
   },
@@ -37,5 +33,10 @@ module.exports = {
 
   format(str, ...args) {
     return str.replace(format, (m, a) => args[a]);
+  },
+
+  pluralize(str) {
+    // TODO switch to String#endsWith() if it ever becomes faster
+    return str.lastIndexOf("s") === str.length - 1 ? `${str}'` : `${str}'s`;
   }
 };

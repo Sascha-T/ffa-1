@@ -39,6 +39,8 @@ module.exports = new class TimeSpanReader extends TypeReader {
 
         if (keys.some(k => val.indexOf(k) === lastIndex) === true)
           result = Math.round(result * times[val.charAt(lastIndex)]);
+        else
+          result = Math.round(result * times.h);
 
         return TypeReaderResult.fromSuccess(result);
       }

@@ -60,7 +60,7 @@ module.exports = {
           description: msg
         });
       } else
-        result = this.embedify(msg);
+        result = this.embedify({color, ...msg});
     }
 
     return channel.createMessage(result);
@@ -89,7 +89,7 @@ module.exports = {
           description: msg
         });
       } else
-        result = this.embedify(msg);
+        result = this.embedify({color, ...msg});
     }
 
     return channel.createMessage(result);
@@ -146,7 +146,7 @@ module.exports = {
         });
       } else {
         reply.description = `**${this.tag(msg.author)}**, ${reply.description}`;
-        result = this.embedify(reply);
+        result = this.embedify({color, ...reply});
       }
     } else
       result = `**${this.tag(msg.author)}**, ${result}`;

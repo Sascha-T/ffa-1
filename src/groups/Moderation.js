@@ -24,7 +24,7 @@ module.exports = new class ModerationGroup extends Group {
       description: "Commands reserved for the most reputable users to moderate the guild.",
       name: "moderation",
       preconditionOptions: [null, {column: "mod"}],
-      preconditions: ["maxactions", "top"],
+      preconditions: ["maxactions", "top"]
     });
   }
 }();

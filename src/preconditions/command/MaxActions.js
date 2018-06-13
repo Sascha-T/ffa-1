@@ -20,6 +20,7 @@ const {Precondition, PreconditionResult} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const Database = require("../../services/Database.js");
 const maxActions = {};
+const delay = config.timer.resetActions * 1e3;
 
 module.exports = new class MaxActionsPrecondition extends Precondition {
   constructor() {
@@ -36,7 +37,7 @@ module.exports = new class MaxActionsPrecondition extends Precondition {
       maxActions[key] = {first: 0};
     }
 
-    setTimeout(() => this.loop(), config.timer.resetActions);
+    setTimeout(() => this.loop(), delay);
   }
 
   async run(cmd, msg) {
@@ -45,8 +46,8 @@ module.exports = new class MaxActionsPrecondition extends Precondition {
     if (maxActions.hasOwnProperty(msg.author.id) === false ||
         Date.now() - maxActions[msg.author.id] > 36e5) {
       maxActions[msg.author.id] = {
-        first: Date.now(),
-        count: 1
+        count: 1,
+        first: Date.now()
       };
 
       return PreconditionResult.fromSuccess();

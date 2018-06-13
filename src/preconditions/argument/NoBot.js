@@ -16,19 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const client = require("../services/client.js");
-const {config} = require("../services/cli.js");
-const Database = require("../services/Database.js");
+const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-const wait = config.timer.repDecay * 1e3;
-async function loop() {
-  for (const guild of client.guilds.values()) {
-    const {chat: {decay}} = await Database.getGuild(guild.id, {chat: "decay"});
-
-    await Database.pool.query("UPDATE users SET reputation = reputation * $1 WHERE guild_id = $2", [decay, guild.id]);
+module.exports = new class NoBotArgumentPrecondition extends ArgumentPrecondition {
+  constructor() {
+    super({
+      name: "nobot"
+    });
   }
 
-  setTimeout(() => loop(), wait);
-}
+  async run(cmd, msg, arg, args, val) {
+    if (val.bot === true)
+      return PreconditionResult.fromError(cmd, "this command may not be used on a bot.");
 
-loop();
+    return PreconditionResult.fromSuccess();
+  }
+}();

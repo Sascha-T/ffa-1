@@ -18,7 +18,8 @@
 "use strict";
 /* eslint-disable no-magic-numbers */
 module.exports = {
-  alphabet: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
+  alphabet: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
+             "v", "w", "x", "y", "z"],
   clearDeleteDelay: 3e3,
   deletedMsgChars: 200,
   discordErrorCodes: {
@@ -28,7 +29,8 @@ module.exports = {
     noPerm: code => code === 403 || code === 50013,
     userOnly: 20001
   },
-  licenseNotice: "FFA Copyright (c) 2018 FFA contributors.\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it under\ncertain conditions. Use the argument `-l` for more details.",
+  licenseNotice: "FFA Copyright (c) 2018 FFA contributors.\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is f\
+ree software, and you are welcome to redistribute it under\ncertain conditions. Use the argument -l for more details.",
   logColors: {
     DEBUG: "\x1b[35m",
     ERROR: "\x1b[31m",
@@ -40,8 +42,7 @@ module.exports = {
     d: 86400,
     h: 3600,
     m: 60,
-    s: 1,
-    w: 604800
+    s: 1
   }
 };
 /* eslint-enable no-magic-numbers */

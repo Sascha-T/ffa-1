@@ -20,18 +20,18 @@ const {config} = require("../services/cli.js");
 const Database = require("../services/Database.js");
 const modService = require("../services/moderation.js");
 
-const wait = config.timers.autoUnmute * 1e3;
+const wait = config.timer.autoUnmute * 1e3;
 async function loop() {
-  const query = Database.pool.query(
-    "SELECT * FROM logs WHERE timestamp > current_timestamp - interval '$1 seconds' AND type < 4",
-    [config.max.mute]
+  const query = await Database.pool.query(
+    "SELECT * FROM logs WHERE timestamp > $1 AND type < 4",
+    [Math.floor(Date.now() / 1e3) - config.max.mute]
   );
 
   for (let i = 0; i < query.rows.length; i++) {
     const row = query.rows[i];
 
     if (row.type === 0 || row.type === 2) {
-      let unmute = query.rows.find(r => {
+      const unmute = query.rows.find(r => {
         return r.guild_id === row.guild_id && r.user_id === row.user_id && (r.type === 1 || r.type === 3) &&
           r.timestamp > row.timestamp;
       });
@@ -39,11 +39,8 @@ async function loop() {
       if (unmute != null)
         continue;
 
-      if (row.timestamp > Math.floor(Date.now() / 1e3) - row.data.length) {
+      if (row.timestamp < Math.floor(Date.now() / 1e3) - row.data.length)
         await modService.autoUnmute(row);
-        query.rows.splice(i, 1);
-        i--;
-      }
     }
   }
 

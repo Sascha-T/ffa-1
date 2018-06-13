@@ -19,7 +19,7 @@
 const {Precondition, PreconditionResult} = require("patron.js");
 const {auth} = require("../../services/cli.js");
 
-module.exports = new class BotOwnersPrecondition extends Precondition {
+module.exports = new class BotOwnerPrecondition extends Precondition {
   constructor() {
     super({
       name: "botowners"

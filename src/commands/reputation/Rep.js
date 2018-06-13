@@ -28,7 +28,7 @@ module.exports = new class RepCommand extends Command {
         example: "AlabamaTrigger#0001",
         key: "a",
         name: "user",
-        preconditions: ["noself"],
+        preconditions: ["noself", "nobot"],
         type: "user"
       })],
       cooldown: config.cd.rep * 1e3,

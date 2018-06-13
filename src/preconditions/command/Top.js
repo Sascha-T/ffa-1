@@ -28,12 +28,12 @@ module.exports = new class TopPrecondition extends Precondition {
 
   async run(cmd, msg, opt) {
     let query = await Database.getGuild(msg.channel.guild.id, {top: opt.column});
-    const count = query.rows[0][opt.column];
+    const count = query.top[opt.column];
     query = await Database.pool.query(
       "SELECT user_id FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC LIMIT $2",
       [msg.channel.guild.id, count]
     );
-    let result = query.rows.some(r => r.user_id === msg.author.id);
+    const result = query.rows.some(r => r.user_id === msg.author.id);
 
     if (result === true)
       return PreconditionResult.fromSuccess();

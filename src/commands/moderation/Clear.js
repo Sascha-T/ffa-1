@@ -18,7 +18,7 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const message = require("../../utility/message.js");
+const message = require("../../utilities/message.js");
 const modService = require("../../services/moderation.js");
 
 module.exports = new class ClearCommand extends Command {
@@ -28,7 +28,7 @@ module.exports = new class ClearCommand extends Command {
         example: "SteveJr#3333",
         key: "user",
         name: "user",
-        preconditions: ["noself", "higherrep"],
+        preconditions: ["noself", "noffa", "higherrep"],
         type: "user"
       }), new Argument({
         example: "3a",
@@ -37,7 +37,7 @@ module.exports = new class ClearCommand extends Command {
         type: "rule"
       }), new Argument({
         defaultValue: config.default.clear,
-        example: 20,
+        example: "20",
         key: "quantity",
         name: "quantity",
         preconditionOptions: [{max: config.max.clear, min: config.min.clear}],
@@ -61,7 +61,8 @@ module.exports = new class ClearCommand extends Command {
   }
 
   async run(msg, args) {
-    const amount = await msg.channel.purge(args.quantity, m => m.author.id === args.user.id);
+    let quota = 0;
+    const amount = await msg.channel.purge(100, m => m.author.id === args.user.id && (++quota <= args.quantity));
 
     if (amount === 0)
       await message.reply(msg, "there are no messages to delete.");
@@ -71,13 +72,13 @@ module.exports = new class ClearCommand extends Command {
           mod_id: msg.author.id,
           quantity: amount,
           reason: args.reason,
-          rule: args.rule.content
+          rule: args.rule.content.content
         },
         guild_id: msg.channel.guild.id,
         type: 4,
         user_id: args.user.id
       }, config.customColors.clear);
-      await message.reply(msg, `you have successfully deleted ${args.quantity} messages sent by **${message.tag(args.user)}**.`);
+      await message.reply(msg, `you have successfully deleted ${amount} messages sent by **${message.tag(args.user)}**.`);
     }
   }
 }();

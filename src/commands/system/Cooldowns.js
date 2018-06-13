@@ -61,11 +61,11 @@ module.exports = new class CooldownsCommand extends Command {
       if (args.user.id === msg.author.id)
         await message.reply(msg, "all your commands are available for use.");
       else
-        await message.create(msg.channel, `All of **${message.tag(args.user)}**'s commands are available for use.`);
+        await message.create(msg.channel, `All of **${str.pluralize(message.tag(args.user))}** commands are available for use.`);
     } else {
       await message.create(msg.channel, {
         description: keys.map(k => `**${str.capitalize(k)}**: ${time.clockFormat(cooldowns[k])}`).join("\n"),
-        title: `${message.tag(args.user)}'s Cooldowns`
+        title: `${str.pluralize(message.tag(args.user))} Cooldowns`
       });
     }
   }

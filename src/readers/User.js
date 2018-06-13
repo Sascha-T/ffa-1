@@ -38,19 +38,21 @@ module.exports = new class UserReader extends TypeReader {
     }
 
     if (msg.channel.guild != null) {
+      const lowerVal = val.toLowerCase();
       const index = val.lastIndexOf("#");
 
       if (index === -1) {
-        const member = msg.channel.guild.members.find(m => m.username === val);
+        const member = msg.channel.guild.members.find(m => m.username.toLowerCase() === lowerVal);
 
         if (member != null)
           return TypeReaderResult.fromSuccess(member.user);
       } else {
         const discrim = val.slice(index + 1);
-        const username = val.slice(0, index);
+        const username = val.slice(0, index).toLowerCase();
 
         if (regexes.discrim.test(discrim) === true) {
-          const member = msg.channel.guild.members.find(m => m.discriminator === discrim && m.username === username);
+          const member = msg.channel.guild.members.find(m => m.discriminator === discrim &&
+              m.username.toLowerCase() === username);
 
           if (member != null)
             return TypeReaderResult.fromSuccess(member.user);

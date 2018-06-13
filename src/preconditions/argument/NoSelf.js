@@ -18,7 +18,7 @@
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class Between extends ArgumentPrecondition {
+module.exports = new class NoSelfArgumentPrecondition extends ArgumentPrecondition {
   constructor() {
     super({
       name: "noself"
