@@ -53,7 +53,7 @@ module.exports = new class AddRuleCommand extends Command {
   async run(msg, args) {
     await Database.pool.query(
       "UPDATE rules SET content = $1, mute_length = $2 WHERE (id, category, timestamp) = ($3, $4, $5)",
-      [args.content, args.muteLen, msg.channel.guild.id, args.rule.category, args.rule.timestamp]
+      [args.content, args.muteLen, msg.channel.guild.id, args.rule.content.category, args.rule.content.timestamp]
     );
     await message.reply(msg, "you have successfully modified this rule.");
     await ruleService.update(msg.channel.guild.id);
