@@ -56,27 +56,28 @@ client.on("messageCreate", wrapEvent(async msg => {
         spam[msg.author.id].count++;
 
         if (spam[msg.author.id].count >= guild.spam.msg_limit) {
-          const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
+          modService.sync(msg.channel.guild.id, async () => {
+            const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
 
-          if (mutedRole == null ||
-              msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
-            return false;
+            if (mutedRole == null ||
+                msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
+              return false;
 
-          await modService.autoMute(msg, guild.moderation.mute_length);
-
-          return false;
+            await modService.autoMute(msg, guild.moderation.mute_length);
+          });
         }
       }
     }
 
     const isMuted = await modService.isMuted(msg.channel.guild.id, msg.author.id);
 
-    if (isMuted === true || msg.member.roles.indexOf(guild.roles.muted_id) !== -1 ||
-        guild.channels.ignored_ids.indexOf(msg.channel.id) !== -1)
+    if (guild.channels.ignored_ids.indexOf(msg.channel.id) !== -1)
       return false;
 
-    if (msg.content.indexOf(config.bot.prefix) !== 0 && (cooldowns.hasOwnProperty(msg.author.id) === false
-        || cooldowns[msg.author.id] >= Date.now())) {
+    if (msg.content.indexOf(config.bot.prefix) !== 0 && isMuted === false &&
+        msg.member.roles.indexOf(guild.roles.muted_id) !== -1 &&
+        (cooldowns.hasOwnProperty(msg.author.id) === false ||
+        cooldowns[msg.author.id] >= Date.now())) {
       cooldowns[msg.author.id] = Date.now() + guild.chat.delay;
       await Database.changeRep(msg.channel.guild.id, msg.author.id, guild.chat.reward);
     }

@@ -41,7 +41,7 @@ module.exports = new class ErrorLogsCommand extends Command {
       file = await readFile(`${Logger.logsPath}/${name}`);
     } catch (e) {
       if (e.code === "ENOENT")
-        return message.replyError(msg.channel, "No error log file has been created.");
+        return message.replyError(msg, "No error log file has been created.");
       else
         throw e;
     }

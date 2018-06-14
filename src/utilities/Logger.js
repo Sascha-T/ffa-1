@@ -30,7 +30,7 @@ module.exports = new class Logger {
     this.logsPath = path.join(__dirname, `../../${logsDirectory}`);
 
     if (fs.existsSync(this.logsPath) === false)
-      fs.mkdir(this.logsPath);
+      fs.mkdirSync(this.logsPath);
 
     this.stream = fs.createWriteStream(`${this.logsPath}/${this.dateStr}`, {flags: "a"});
   }
