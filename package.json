@@ -1,13 +1,13 @@
 {
   "name": "ffa",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The core control of the only fully decentralized discord server.",
   "main": "./src/index.js",
   "private": true,
   "dependencies": {
     "eris": "^0.8.6",
     "ini": "^1.3.5",
-    "patron.js": "github:vim2meta/patron.js",
+    "patron.js": "^3.0.2",
     "pg": "^7.4.3",
     "pg-native": "^3.0.0",
     "yargs": "^11.0.0"
@@ -24,7 +24,7 @@
   },
   "scripts": {
     "lint": "node_modules/.bin/eslint . --ext .js",
-    "test": "node ./test/index.js"
+    "test": "npm run lint && node ./test/index.js"
   },
   "license": "MIT",
   "repository": {

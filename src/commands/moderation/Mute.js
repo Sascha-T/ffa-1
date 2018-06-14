@@ -62,7 +62,7 @@ module.exports = new class MuteCommand extends Command {
     if (args.rule.content.mute_length != null && args.length > args.rule.content.mute_length) {
       await message.replyError(
         msg,
-        `the maximum mute length of this rule is ${time.format(args.rule.mute_length)}.`
+        `the maximum mute length of this rule is ${time.format(args.rule.content.mute_length)}.`
       );
     } else if (args.length < config.min.mute) {
       return message.reply(

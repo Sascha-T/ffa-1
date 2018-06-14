@@ -75,7 +75,7 @@ client.on("messageCreate", wrapEvent(async msg => {
       return false;
 
     if (msg.content.indexOf(config.bot.prefix) !== 0 && isMuted === false &&
-        msg.member.roles.indexOf(guild.roles.muted_id) !== -1 &&
+        msg.member.roles.indexOf(guild.roles.muted_id) === -1 &&
         (cooldowns.hasOwnProperty(msg.author.id) === false ||
         cooldowns[msg.author.id] >= Date.now())) {
       cooldowns[msg.author.id] = Date.now() + guild.chat.delay;

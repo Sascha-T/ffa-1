@@ -20,6 +20,7 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const {logColors, logsDirectory} = require("./constants.js");
+const time = require("./time.js");
 const appendFile = util.promisify(fs.appendFile);
 
 module.exports = new class Logger {
@@ -46,8 +47,8 @@ module.exports = new class Logger {
 
     if (this.stream.writable === false)
       await this.waitTillWritable();
-    console[level.toLowerCase()](`${this.formatDate(date)} ${logColors[level]}[${level}]\x1b[0m ${msg}`);
-    const formattedMsg = `${this.dateStr} [${level}] ${msg}\n`;
+    console[level.toLowerCase()](`${time.clockFormat(date.getTime())} ${logColors[level]}[${level}]\x1b[0m ${msg}`);
+    const formattedMsg = `${time.clockFormat(date.getTime())} [${level}] ${msg}\n`;
     this.stream.write(formattedMsg);
     if (level === "ERROR")
       await appendFile(`${this.logsPath}/${this.dateStr}-Errors`, formattedMsg);
