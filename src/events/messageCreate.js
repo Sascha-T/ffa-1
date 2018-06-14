@@ -77,8 +77,8 @@ client.on("messageCreate", wrapEvent(async msg => {
     if (msg.content.indexOf(config.bot.prefix) !== 0 && isMuted === false &&
         msg.member.roles.indexOf(guild.roles.muted_id) === -1 &&
         (cooldowns.hasOwnProperty(msg.author.id) === false ||
-        cooldowns[msg.author.id] >= Date.now())) {
-      cooldowns[msg.author.id] = Date.now() + guild.chat.delay;
+        cooldowns[msg.author.id] <= Date.now())) {
+      cooldowns[msg.author.id] = Date.now() + guild.chat.delay * 1e3;
       await Database.changeRep(msg.channel.guild.id, msg.author.id, guild.chat.reward);
     }
   }

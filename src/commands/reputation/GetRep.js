@@ -38,6 +38,7 @@ module.exports = new class GetRepCommand extends Command {
   }
 
   async run(msg, args) {
+    await Database.getUser(msg.channel.guild.id, msg.author.id);
     const query = await Database.pool.query(
       "SELECT user_id, reputation FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC",
       [msg.channel.guild.id]
