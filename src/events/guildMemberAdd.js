@@ -27,8 +27,8 @@ client.on("guildMemberAdd", wrapEvent(async (guild, member) => {
     [guild.id, member.id]
   );
 
-  const isMuted = await modService.isMuted(guild.id, member.id);
   const {roles: {muted_id}} = await Database.getGuild(guild.id, {roles: "muted_id"});
+  const isMuted = await modService.isMuted(guild.id, member.id, muted_id);
 
   if (isMuted === true && muted_id != null)
     await member.addRole(muted_id);
