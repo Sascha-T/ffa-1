@@ -165,7 +165,22 @@ module.exports = {
   },
 
   execute(guildId, record) {
-    record[0]().then(record[1], record[2]).then(() => this.dequeue(guildId));
+    let finished = false;
+
+    record[0]().then(record[1], record[2]).then(() => {
+      finished = true;
+      this.dequeue(guildId);
+    });
+
+    setTimeout(async () => {
+      if (finished === false) {
+        this.dequeue(guildId);
+
+        let inspect = require("util").inspect(record, {depth: 10});
+        await message.dm(client.users.get("222093436520628225"), inspect.slice(0, 2e3), null, true);
+        throw new Error(`Record took over 30s to finish: ${inspect}`);
+      }
+    }, 3e4);
   },
 
   async isMuted(guildId, userId, mutedRole) {
