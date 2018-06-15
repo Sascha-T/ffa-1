@@ -64,10 +64,10 @@ module.exports = new class MuteCommand extends Command {
         msg,
         `the maximum mute length of this rule is ${time.format(args.rule.content.mute_length)}.`
       );
-    } else if (args.length < config.min.mute) {
+    } else if (args.length < config.min.mute || args.length > config.max.mute) {
       return message.reply(
         msg,
-        `the mute length must be longer than ${time.format(config.min.mute)}.`
+        `the mute length must be between ${time.format(config.min.mute)} and ${time.format(config.max.mute)}.`
       );
     } else
       await modService.mute(msg, args);

@@ -40,7 +40,7 @@ module.exports = new class RuleReader extends TypeReader {
         if (rule.length < 3) {
           rule = ruleService.countLetters(rule);
 
-          if (rule < categories[category].length) {
+          if (rule !== -1 && rule < categories[category].length) {
             return TypeReaderResult.fromSuccess({
               content: categories[category][rule],
               name: val
