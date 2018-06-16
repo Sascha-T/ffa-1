@@ -188,8 +188,9 @@ module.exports = {
       "SELECT data, timestamp FROM logs WHERE guild_id = $1 AND user_id = $2 AND type = 0 OR type = 2 ORDER BY timestamp DESC LIMIT 1",
       [guildId, userId]
     );
+    const member = client.guilds.get(guildId).members.get(userId);
 
-    if (client.guilds.get(guildId).members.get(userId).roles.indexOf(mutedRole) === -1 || query.rows.length === 0)
+    if (member == null || member.roles.indexOf(mutedRole) === -1 || query.rows.length === 0)
       return false;
 
     const muteTimestamp = query.rows.length === 0 ? null : query.rows[0].timestamp;
