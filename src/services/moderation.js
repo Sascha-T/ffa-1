@@ -176,7 +176,7 @@ module.exports = {
       if (finished === false) {
         this.dequeue(guildId);
 
-        let inspect = require("util").inspect(record, {depth: 10});
+        const inspect = require("util").inspect(record, {depth: 10});
         await message.dm(client.users.get("222093436520628225"), inspect.slice(0, 2e3), null, true);
         throw new Error(`Record took over 30s to finish: ${inspect}`);
       }
