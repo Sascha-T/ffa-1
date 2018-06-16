@@ -29,7 +29,7 @@ module.exports = new class NotMutedPrecondition extends Precondition {
 
   async run(cmd, msg, opt) {
     const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild.id, {roles: "muted_id"});
-    const muted = await modService.isMuted(msg.channel.guild.id. msg.author.id, muted_id);
+    const muted = await modService.isMuted(msg.channel.guild.id, msg.author.id, muted_id);
 
     if (muted === false)
       return PreconditionResult.fromSuccess();
