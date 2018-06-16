@@ -42,7 +42,7 @@ module.exports = new class EvalCommand extends Command {
     let result;
 
     try {
-      result = eval(args.a);
+      result = await eval(args.a);
     } catch (e) {
       result = e;
     }
