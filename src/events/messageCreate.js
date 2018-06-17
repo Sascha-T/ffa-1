@@ -56,15 +56,13 @@ client.on("messageCreate", wrapEvent(async msg => {
         spam[msg.author.id].count++;
 
         if (spam[msg.author.id].count >= guild.spam.msg_limit) {
-          modService.sync(msg.channel.guild.id, async () => {
-            const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
+          const mutedRole = msg.channel.guild.roles.get(guild.roles.muted_id);
 
-            if (mutedRole == null ||
-                msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
-              return false;
+          if (mutedRole == null ||
+              msg.member.roles.indexOf(guild.roles.muted_id) !== -1)
+            return false;
 
-            await modService.autoMute(msg, guild.moderation.mute_length);
-          });
+          await modService.autoMute(msg, guild.moderation.mute_length);
         }
       }
     }
