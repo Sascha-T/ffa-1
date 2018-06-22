@@ -234,7 +234,9 @@ module.exports = {
         const tag = message.tag(msg.author);
         const member = msg.channel.guild.members.get(args.user.id);
 
-        if (member.roles.indexOf(muted_id) === -1)
+        if (member == null)
+          return message.replyError(msg, "that user isn't in the server");
+        else if (member.roles.indexOf(muted_id) === -1)
           await member.addRole(muted_id);
 
         await message.reply(msg, `you have successfully muted **${message.tag(args.user)}**.`);
@@ -311,7 +313,9 @@ hment rule, create a poll which adds it, and lobby other users to vote in favor 
       try {
         const member = msg.channel.guild.members.get(args.user.id);
 
-        if (member.roles.indexOf(muted_id) !== -1)
+        if (member == null)
+          return message.replyError(msg, "that user isn't in the server");
+        else if (member.roles.indexOf(muted_id) !== -1)
           await member.removeRole(muted_id);
 
         await message.reply(msg, `you have successfully unmuted **${message.tag(args.user)}**.`);
