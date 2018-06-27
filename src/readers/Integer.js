@@ -18,11 +18,9 @@
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
 
-module.exports = new class IntTypeReader extends TypeReader {
+module.exports = new class Int extends TypeReader {
   constructor() {
-    super({
-      type: "integer"
-    });
+    super({type: "integer"});
   }
 
   async read(cmd, msg, arg, args, val) {
@@ -30,6 +28,10 @@ module.exports = new class IntTypeReader extends TypeReader {
 
     if (Number.isInteger(result) === true)
       return TypeReaderResult.fromSuccess(result);
-    return TypeReaderResult.fromError(cmd, "you have provided an invalid integer.");
+
+    return TypeReaderResult.fromError(
+      cmd,
+      "you have provided an invalid number."
+    );
   }
 }();

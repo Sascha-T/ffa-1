@@ -19,6 +19,7 @@
 const client = require("../services/client.js");
 const {config} = require("../services/cli.js");
 const random = require("./random.js");
+const {data: {descriptions}} = require("../services/data.js");
 const str = require("./string.js");
 
 module.exports = {
@@ -28,7 +29,7 @@ module.exports = {
     if (member.permission.has("manageRoles") === false)
       return false;
 
-    const highest = 0;
+    let highest = 0;
 
     for (let i = 0; i < member.roles.length; i++) {
       const pos = guild.roles.get(member.roles[i]).position;
@@ -43,6 +44,14 @@ module.exports = {
   colors: config.colors,
 
   create(channel, msg, color, override = false) {
+    let perms;
+
+    if (channel.guild != null)
+      perms = channel.permissionsOf(channel.guild.shard.client.user.id);
+
+    if (perms != null && perms.has("sendMessages") === false)
+      return;
+
     let result = msg.description;
 
     if (result == null) {
@@ -52,15 +61,19 @@ module.exports = {
         result = msg.content;
     }
 
-    if (override !== true && (channel.guild == null ||
-        channel.permissionsOf(channel.guild.shard.client.user.id).has("embedLinks"))) {
+    if (override !== true && (perms == null
+        || perms.has("embedLinks") === true)) {
       if (typeof msg === "string") {
         result = this.embedify({
           color,
           description: msg
         });
-      } else
-        result = this.embedify({color, ...msg});
+      } else {
+        result = this.embedify({
+          color,
+          ...msg
+        });
+      }
     }
 
     return channel.createMessage(result);
@@ -88,8 +101,12 @@ module.exports = {
           color,
           description: msg
         });
-      } else
-        result = this.embedify({color, ...msg});
+      } else {
+        result = this.embedify({
+          color,
+          ...msg
+        });
+      }
     }
 
     return channel.createMessage(result);
@@ -114,20 +131,18 @@ module.exports = {
 
   errorColor: config.customColors.error,
 
-  list(objs, name, desc) {
-    let longest = objs[0][name].length + 2;
+  reply(msg, reply, color, override = false) {
+    let perms;
 
-    for (let i = 1; i < objs.length; i++) {
-      if (objs[i][name].length > longest)
-        longest = objs[i][name].length + 2;
+    if (msg.channel.guild != null) {
+      const clientId = msg.channel.guild.shard.client.user.id;
+
+      perms = msg.channel.permissionsOf(clientId);
     }
 
-    return `\`\`\`\n${objs.map(val => {
-      return `${val[name]}${" ".repeat(longest - val[name].length)}${val[desc]}`;
-    }).join("\n")}\`\`\``;
-  },
+    if (perms != null && perms.has("sendMessages") === false)
+      return;
 
-  reply(msg, reply, color, override = false) {
     let result = reply.description;
 
     if (result == null) {
@@ -137,19 +152,37 @@ module.exports = {
         result = reply.content;
     }
 
-    if (override !== true && (msg.channel.guild == null ||
-        msg.channel.permissionsOf(msg.channel.guild.shard.client.user.id).has("embedLinks"))) {
+    if (override !== true && (perms == null
+        || perms.has("embedLinks") === true)) {
       if (typeof reply === "string") {
         result = this.embedify({
           color,
-          description: `**${this.tag(msg.author)}**, ${reply}`
+          description: str.format(
+            descriptions.msg,
+            this.tag(msg.author),
+            reply
+          )
         });
       } else {
-        reply.description = `**${this.tag(msg.author)}**, ${reply.description}`;
-        result = this.embedify({color, ...reply});
+        result = reply;
+        result.color = color;
+        result.description = str.format(
+          descriptions.msg,
+          this.tag(msg.author),
+          result.description
+        );
+        result = this.embedify({
+          color,
+          ...result
+        });
       }
-    } else
-      result = `**${this.tag(msg.author)}**, ${result}`;
+    } else {
+      result = str.format(
+        descriptions.msg,
+        this.tag(msg.author),
+        result
+      );
+    }
 
     return msg.channel.createMessage(result);
   },

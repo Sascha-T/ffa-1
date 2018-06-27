@@ -18,16 +18,18 @@
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class NoBotArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class NoBot extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "nobot"
-    });
+    super({name: "nobot"});
   }
 
   async run(cmd, msg, arg, args, val) {
-    if (val.bot === true)
-      return PreconditionResult.fromError(cmd, "this command may not be used on a bot.");
+    if (val.bot === true) {
+      return PreconditionResult.fromError(
+        cmd,
+        "this command may not be used on a bot."
+      );
+    }
 
     return PreconditionResult.fromSuccess();
   }

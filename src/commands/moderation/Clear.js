@@ -16,12 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Argument, Command} = require("patron.js");
+const {Argument, Command, CommandResult} = require("patron.js");
 const {config} = require("../../services/cli.js");
+const {data: {descriptions, responses}} = require("../../services/data.js");
 const message = require("../../utilities/message.js");
 const modService = require("../../services/moderation.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class ClearCommand extends Command {
+module.exports = new class Clear extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -30,20 +32,26 @@ module.exports = new class ClearCommand extends Command {
         name: "user",
         preconditions: ["noself", "noffa", "higherrep"],
         type: "user"
-      }), new Argument({
+      }),
+      new Argument({
         example: "3a",
         key: "rule",
         name: "rule",
         type: "rule"
-      }), new Argument({
+      }),
+      new Argument({
         defaultValue: config.default.clear,
         example: "20",
         key: "quantity",
         name: "quantity",
-        preconditionOptions: [{max: config.max.clear, min: config.min.clear}],
+        preconditionOptions: [{
+          max: config.max.clear,
+          min: config.min.clear
+        }],
         preconditions: ["between"],
         type: "integer"
-      }), new Argument({
+      }),
+      new Argument({
         defaultValue: null,
         example: "stop spamming",
         key: "reason",
@@ -54,7 +62,7 @@ module.exports = new class ClearCommand extends Command {
         type: "string"
       })],
       botPermissions: ["manageRoles"],
-      description: "Delete a specified amount of messages sent by any guild user.",
+      description: descriptions.clear,
       groupName: "moderation",
       names: ["clear", "prune", "purge"]
     });
@@ -62,23 +70,29 @@ module.exports = new class ClearCommand extends Command {
 
   async run(msg, args) {
     let quota = 0;
-    const amount = await msg.channel.purge(100, m => m.author.id === args.user.id && (++quota <= args.quantity));
+    const amount = await msg.channel.purge(
+      100,
+      m => m.author.id === args.user.id && ++quota <= args.quantity
+    );
 
     if (amount === 0)
-      await message.reply(msg, "there are no messages to delete.");
-    else {
-      await modService.addLog({
-        data: {
-          mod_id: msg.author.id,
-          quantity: amount,
-          reason: args.reason,
-          rule: args.rule.content.content
-        },
-        guild_id: msg.channel.guild.id,
-        type: 4,
-        user_id: args.user.id
-      }, config.customColors.clear);
-      await message.reply(msg, `you have successfully deleted ${amount} messages sent by **${message.tag(args.user)}**.`);
-    }
+      return CommandResult.fromError("there are no messages to delete.");
+
+    await modService.addLog({
+      data: {
+        mod_id: msg.author.id,
+        quantity: amount,
+        reason: args.reason,
+        rule: args.rule.content
+      },
+      guild_id: msg.channel.guild.id,
+      type: 4,
+      user_id: args.user.id
+    }, config.customColors.clear);
+    await message.reply(msg, str.format(
+      responses.clearReply,
+      amount,
+      message.tag(args.user)
+    ));
   }
 }();

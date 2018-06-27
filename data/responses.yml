@@ -1,0 +1,75 @@
+allCooldowns: All of **{0}** commands are available for use.
+
+between: the {0} must be between {1} and {2}.
+
+cantDM: I can't DM you. Please allow direct messages from server users.
+
+cantLocate: Unable to locate {0}. Please double-check that it's in the working directory, your home directory, or the {1} argument.
+
+clearReply: "you have successfully deleted {0} messages sent by **{1}**."
+
+cooldownReply: you may use this command in {0}.
+
+helpMsg: |-
+  FFA's goal is to provide a fully decentralized discord server by allowing the community to control every aspect of the server. The entire system is based around reputation. The most reputable users are the moderators. If you believe a certain user is suitable to moderate, you may enter the following: `{0}rep username#1234`. The opposite can be done with `{0}unrep`.
+
+  It is essential that reputation remains in the right hands, as everything revolves around it. It is your duty as a member of this community to ensure that if a user was unjustly punished, the culprit must pay the consequences while vindicating the victim. You may view anyone's reputation by using `{0}getrep`.
+
+  If you wish to view the various command categories, you may use `{0}modules`. To view all the commands of a module, you may use `{0}module general`. You may also view all commands by using `{0}commands`. If you wish to view the progress of this bot, or simply support the creators, you may join the official FFA server here: {1}.
+
+higherRep: you may not use this command on users with a higher reputation than yourself.
+
+incorrectUsage: |-
+  you are incorrectly using this command.
+  **Usage:** `{0}{1}`
+  **Example:** `{0}{2}`
+
+itemList: "**{0}** {1}"
+
+lbEntry: "{0}. **{1}**: {2}"
+
+licenseNotice: |-
+  FFA Copyright (c) 2018 FFA contributors.
+  This program comes with ABSOLUTELY NO WARRANTY.
+  This is free software, and you are welcome to redistribute it under
+  certain conditions. Use the argument -l for more details.
+
+list: "{0}, {1}{2}"
+
+log: |-
+  **Action:** {0}
+  **User:** {1} ({2}){3}
+
+maxActions: you have reached the {0} maximum moderation actions per hour.
+
+maxLen: The maximum {0} length is {1} characters.
+
+memberAge: this command may only be used by members who have been in this server for at least {0}.
+
+muted: |-
+  **{0}** has muted you for **{1}** for breaking the following rule:{2}{3}
+  **If this mute was unjustified or invalid, there are several steps you must take to vindicate yourself:**
+
+  **1.** You must `{5}unrep "{0}"`. This is essential as it will prevent **{0}** from unjustly muting others. This command must be used inside a server channel. If there are no channels dedicated to allow muted users to use commands, please contact **{4}**.
+
+  **2.** You must use `{5}replb 30` to DM these moderators with undeniable proof of your innocence. You must explain in detail why **{0}'s** mute was invalid, and why it should be reverted.
+
+  **3.** You must ensure **{0}** get's muted for unlawful punishment. You may do this by lobbying other moderators, or by gaining enough reputation to do it yourself. If there is no unlawful punishment rule, create a poll which adds it, and lobby other users to vote in favor of said poll.
+
+mutedUser: this command may only be used on a muted user.
+
+muteMaxLen: the maximum mute length of this rule is {0}.
+
+noBulkDelete: Discord doesn't allow bulk deletion of messages that are more than two weeks old.
+
+notmutedUser: this command may not be used on a muted user.
+
+repRank: |-
+  **Reputation:** {0}
+  **Rank:** #{1}
+
+rule: "**{0}.** {1} ({2})"
+
+setErr: Table {0} Column {1} has an unsupported type.
+
+setList: "this column is a list, use either `{0}add` or `{0}remove`."

@@ -16,28 +16,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const catchEvent = require("../utilities/catchEvent.js");
 const client = require("../services/client.js");
 const {config} = require("../services/cli.js");
-const Database = require("../services/Database.js");
+const db = require("../services/database.js");
 const message = require("../utilities/message.js");
 const modService = require("../services/moderation.js");
+const {data: {responses}} = require("../services/data.js");
 const str = require("../utilities/string.js");
-const wrapEvent = require("../utilities/wrapEvent.js");
-const helpMsg = str.format(config.guild.helpMsg, config.bot.prefix, config.guild.invite);
+const helpMsg = str.format(
+  responses.helpMsg,
+  config.bot.prefix,
+  config.guild.invite
+);
 
-client.on("guildMemberAdd", wrapEvent(async (guild, member) => {
+client.on("guildMemberAdd", catchEvent(async (guild, member) => {
   message.dm(member.user, {
     description: helpMsg,
     title: "Welcome to FFA"
   }).catch(() => {});
-
-  await Database.pool.query(
+  await db.pool.query(
     "UPDATE users SET in_guild = true WHERE (guild_id, user_id) = ($1, $2)",
     [guild.id, member.id]
   );
 
-  const {roles: {muted_id}} = await Database.getGuild(guild.id, {roles: "muted_id"});
-  const isMuted = await modService.isMuted(guild.id, member.id, muted_id);
+  const {roles: {muted_id}} = await db.getGuild(guild.id, {roles: "muted_id"});
+  const isMuted = await modService.isMuted(
+    guild.id,
+    member.id,
+    muted_id,
+    false
+  );
 
   if (isMuted === true && muted_id != null)
     await member.addRole(muted_id);

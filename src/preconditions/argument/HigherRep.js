@@ -17,22 +17,25 @@
  */
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
+const {data: {responses}} = require("../../services/data.js");
 
-module.exports = new class HigherRepArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class HigherRep extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "higherrep"
-    });
+    super({name: "higherrep"});
   }
 
-  async run(cmd, msg, arg, args, val, opt) {
-    const author = await Database.getUser(msg.channel.guild.id, msg.author.id, "reputation");
-    const user = await Database.getUser(msg.channel.guild.id, val.id, "reputation");
+  async run(cmd, msg, arg, args, val) {
+    const author = await db.getUser(
+      msg.channel.guild.id,
+      msg.author.id,
+      "reputation"
+    );
+    const user = await db.getUser(msg.channel.guild.id, val.id, "reputation");
 
     if (user.reputation < author.reputation)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, "you may not use this command on users with a higher reputation than yourself.");
+    return PreconditionResult.fromError(cmd, responses.higherRep);
   }
 }();

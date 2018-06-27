@@ -19,10 +19,11 @@
 const {Argument, ArgumentDefault, Command} = require("patron.js");
 const message = require("../../utilities/message.js");
 const registry = require("../../services/registry.js");
+const {data: {descriptions, responses}} = require("../../services/data.js");
 const str = require("../../utilities/string.js");
 const time = require("../../utilities/time.js");
 
-module.exports = new class CooldownsCommand extends Command {
+module.exports = new class Cooldowns extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -43,28 +44,44 @@ module.exports = new class CooldownsCommand extends Command {
 
     for (let i = 0; i < registry.commands.length; i++) {
       if (registry.commands[i].hasCooldown === true) {
-        const cooldown = registry.commands[i]
-        .cooldowns[`${args.user.id}${msg.channel.guild === null ? "" : `-${msg.channel.guild.id}`}`];
+        let cooldown;
 
-        if (cooldown !== undefined) {
-          const diff = cooldown - Date.now();
+        if (msg.channel.guild == null) {
+          cooldown = registry.commands[i].cooldowns[args.user.id];
+        } else {
+          const id = `${args.user.id}-${msg.channel.guild.id}`;
 
-          if (diff > 0)
-            cooldowns[registry.commands[i].names[0]] = diff;
+          cooldown = registry.commands[i].cooldowns[id];
         }
+
+        if (cooldown == null)
+          continue;
+
+        const diff = cooldown - Date.now();
+
+        if (diff > 0)
+          cooldowns[registry.commands[i].names[0]] = diff;
       }
     }
 
     const keys = Object.keys(cooldowns);
 
     if (keys.length === 0) {
-      if (args.user.id === msg.author.id)
+      if (args.user.id === msg.author.id) {
         await message.reply(msg, "all your commands are available for use.");
-      else
-        await message.create(msg.channel, `All of **${str.pluralize(message.tag(args.user))}** commands are available for use.`);
+      } else {
+        await message.create(msg.channel, str.format(
+          responses.allCooldowns,
+          str.pluralize(message.tag(args.user))
+        ));
+      }
     } else {
       await message.create(msg.channel, {
-        description: keys.map(k => `**${str.capitalize(k)}**: ${time.clockFormat(cooldowns[k])}`).join("\n"),
+        description: keys.map(k => str.format(
+          descriptions.cooldown,
+          str.capitalize(k),
+          time.clockFormat(cooldowns[k])
+        )).join("\n"),
         title: `${str.pluralize(message.tag(args.user))} Cooldowns`
       });
     }

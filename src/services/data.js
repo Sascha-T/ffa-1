@@ -15,3 +15,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+"use strict";
+const path = require("path");
+const {readAll} = require("../utilities/files.js");
+const yaml = require("js-yaml");
+
+module.exports = {
+  data: false,
+
+  async fetch() {
+    if (this.data === false) {
+      this.data = await readAll(path.join(__dirname, "../../data"), "utf8");
+
+      for (const key in this.data) {
+        if (this.data.hasOwnProperty(key) === false
+            || typeof this.data[key] !== "string")
+          continue;
+
+        this.data[key] = yaml.load(this.data[key]);
+      }
+
+      for (const query in this.data.queries) {
+        if (this.data.queries.hasOwnProperty(query) === false)
+          continue;
+
+        this.data.queries[query] = this.data.queries[query]
+          .replace(this.data.regexes.newline, "");
+      }
+    }
+  }
+};

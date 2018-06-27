@@ -18,16 +18,18 @@
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class NoSelfArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class NoSelf extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "noself"
-    });
+    super({name: "noself"});
   }
 
   async run(cmd, msg, arg, args, val) {
-    if (msg.author.id === val.id)
-      return PreconditionResult.fromError(cmd, "this command may not be used on yourself.");
+    if (msg.author.id === val.id) {
+      return PreconditionResult.fromError(
+        cmd,
+        "this command may not be used on yourself."
+      );
+    }
 
     return PreconditionResult.fromSuccess();
   }

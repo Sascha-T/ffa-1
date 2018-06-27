@@ -18,12 +18,13 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
+const {data: {queries}} = require("../../services/data.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
 const time = require("../../utilities/time.js");
 
-module.exports = new class AddRuleCommand extends Command {
+module.exports = new class AddRule extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -31,16 +32,23 @@ module.exports = new class AddRuleCommand extends Command {
         key: "content",
         name: "content",
         type: "string"
-      }), new Argument({
+      }),
+      new Argument({
         example: "Harassment",
         key: "category",
         name: "category",
         type: "string"
-      }), new Argument({
+      }),
+      new Argument({
         defaultValue: null,
         example: "72h",
         key: "muteLen",
         name: "max mute length",
+        preconditionOptions: [{
+          max: config.max.mute,
+          min: config.min.mute
+        }],
+        preconditions: ["betweentime"],
         type: "timespan"
       })],
       description: "Adds a rule.",
@@ -50,16 +58,13 @@ module.exports = new class AddRuleCommand extends Command {
   }
 
   async run(msg, args) {
-    if (args.muteLen != null && (args.muteLen > config.max.mute || args.muteLen < config.min.mute)) {
-      return message.reply(
-        msg,
-        `the maximum mute length must be between ${time.format(config.min.mute)} and ${time.format(config.max.mute)}.`
-      );
-    }
-
-    await Database.pool.query(
-      "INSERT INTO rules(id, category, content, mute_length, timestamp) VALUES($1, $2, $3, $4, $5)",
-      [msg.channel.guild.id, args.category.toLowerCase(), args.content, args.muteLen, Math.floor(Date.now() / 1e3)]
+    await db.pool.query(
+      queries.addRule,
+      [msg.channel.guild.id,
+        args.category.toLowerCase(),
+        args.content,
+        time.epoch(),
+        args.muteLen]
     );
     await message.reply(msg, "you have successfully added a new rule.");
     await ruleService.update(msg.channel.guild.id);

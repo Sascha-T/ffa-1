@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const catchEvent = require("../utilities/catchEvent.js");
 const client = require("../services/client.js");
-const Database = require("../services/Database.js");
-const wrapEvent = require("../utilities/wrapEvent.js");
+const db = require("../services/database.js");
 
-client.on("guildMemberRemove", wrapEvent(async (guild, member) => {
-  await Database.pool.query(
+client.on("guildMemberRemove", catchEvent(async (guild, member) => {
+  await db.pool.query(
     "UPDATE users SET in_guild = false WHERE (guild_id, user_id) = ($1, $2)",
     [guild.id, member.id]
   );

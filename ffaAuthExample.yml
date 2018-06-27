@@ -1,0 +1,13 @@
+# Related to the bot account.
+bot: {
+  # Place the bot's token here.
+  token: MzE5OTc0NTYwODk0Mjg3ODcy.De4FAA.lrZ3geBkcJJar4Jc-ha3h8y2WLk,
+  # Array of user IDs of bot owners.
+  owners: ["364391575842979840", "222093436520628225"]
+}
+
+# For connecting to the PostgreSQL database. See more at: https://node-postgres.com/features/connecting
+pg: {
+  user: steven dickenson,
+  database: ffa
+}

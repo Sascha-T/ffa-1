@@ -20,4 +20,7 @@ const {Handler} = require("patron.js");
 const cli = require("./cli.js");
 const registry = require("./registry.js");
 
-module.exports = new Handler({...cli.config.handlerOptions, registry: registry});
+module.exports = new Handler({
+  ...cli.config.handlerOptions,
+  registry
+});

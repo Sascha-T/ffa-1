@@ -16,12 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-module.exports = {
-  discrim: /^\d{4}$/,
-  format: /{(\d+)}/g,
-  id: /^\d{14,20}$/,
-  markdown: /[<@!#&>:_~*`\\]/g,
-  mention: /^<@!?(\d{14,20})>$/,
-  number: /^\d+(\.\d+)?/,
-  uppercase: /\b[a-z]|\B[A-Z]/g
+const MultiMutex = require("./MultiMutex.js");
+
+module.exports = class LimitedMutex {
+  constructor(limit = 2) {
+    this.limit = limit;
+    this.mutex = new MultiMutex();
+  }
+
+  sync(id, task) {
+    const mutex = this.mutex.mutexes.get(id);
+
+    if (mutex == null || mutex.queue.length < this.limit)
+      return this.mutex.sync(id, task);
+  }
 };

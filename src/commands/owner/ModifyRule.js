@@ -18,11 +18,12 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
+const {data} = require("../../services/data.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
 
-module.exports = new class AddRuleCommand extends Command {
+module.exports = new class ModifyRule extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -30,31 +31,43 @@ module.exports = new class AddRuleCommand extends Command {
         key: "rule",
         name: "rule",
         type: "rule"
-      }), new Argument({
+      }),
+      new Argument({
         example: "\"Nutting faster than Willy Wonka\"",
         key: "content",
         name: "content",
         type: "string"
-      }), new Argument({
+      }),
+      new Argument({
         defaultValue: null,
         example: "420h",
         key: "muteLen",
         name: "max mute length",
-        preconditionOptions: [{max: config.max.mute, min: config.min.mute}],
+        preconditionOptions: [{
+          max: config.max.mute,
+          min: config.min.mute
+        }],
         preconditions: ["between"],
         type: "timespan"
       })],
       description: "Modifies any rule.",
       groupName: "owner",
-      names: ["modifyrule", "editrule", "changerule"]
+      names: ["modifyrule",
+        "modrule",
+        "changerule",
+        "editrule",
+        "updaterule"]
     });
   }
 
   async run(msg, args) {
-    await Database.pool.query(
-      "UPDATE rules SET content = $1, mute_length = $2 WHERE (id, category, timestamp) = ($3, $4, $5)",
-      [args.content, args.muteLen, msg.channel.guild.id, args.rule.content.category.toLowerCase(),
-       args.rule.content.timestamp]
+    await db.pool.query(
+      data.queries.modifyRule,
+      [args.content,
+        args.muteLen,
+        msg.channel.guild.id,
+        args.rule.category,
+        args.rule.epoch]
     );
     await message.reply(msg, "you have successfully modified this rule.");
     await ruleService.update(msg.channel.guild.id);

@@ -18,11 +18,9 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const message = require("../../utilities/message.js");
 const modService = require("../../services/moderation.js");
-const time = require("../../utilities/time.js");
 
-module.exports = new class MuteCommand extends Command {
+module.exports = new class Mute extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -31,17 +29,25 @@ module.exports = new class MuteCommand extends Command {
         name: "user",
         preconditions: ["noself", "noffa", "higherrep"],
         type: "user"
-      }), new Argument({
+      }),
+      new Argument({
         example: "2c",
         key: "rule",
         name: "rule",
         type: "rule"
-      }), new Argument({
+      }),
+      new Argument({
         example: "8h",
         key: "length",
-        name: "length",
+        name: "mute length",
+        preconditionOptions: [{
+          max: config.max.mute,
+          min: config.min.mute
+        }],
+        preconditions: ["betweentime"],
         type: "timespan"
-      }), new Argument({
+      }),
+      new Argument({
         defaultValue: null,
         example: "stop spamming",
         key: "reason",
@@ -59,17 +65,6 @@ module.exports = new class MuteCommand extends Command {
   }
 
   async run(msg, args) {
-    if (args.rule.content.mute_length != null && args.length > args.rule.content.mute_length) {
-      await message.replyError(
-        msg,
-        `the maximum mute length of this rule is ${time.format(args.rule.content.mute_length)}.`
-      );
-    } else if (args.length < config.min.mute || args.length > config.max.mute) {
-      return message.reply(
-        msg,
-        `the mute length must be between ${time.format(config.min.mute)} and ${time.format(config.max.mute)}.`
-      );
-    } else
-      await modService.mute(msg, args);
+    return modService.mute(msg, args);
   }
 }();

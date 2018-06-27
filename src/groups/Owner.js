@@ -18,7 +18,7 @@
 "use strict";
 const {Group} = require("patron.js");
 
-module.exports = new class OwnerGroup extends Group {
+module.exports = new class Owner extends Group {
   constructor() {
     super({
       description: "Commands reserved for the server owner.",

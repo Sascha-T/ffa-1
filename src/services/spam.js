@@ -16,31 +16,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const db = require("./database.js");
+const modService = require("./moderation.js");
+const MultiMutex = require("../utilities/MultiMutex.js");
+
 module.exports = {
-  busy: false,
+  entries: new Map(),
+  mutex: new MultiMutex(),
 
-  dequeue() {
-    this.busy = true;
-    const next = this._queue.shift();
+  update(msg, guild) {
+    this.mutex.sync(msg.channel.guild.id, async () => {
+      const entry = this.entries.get(msg.author.id);
 
-    if (next == null)
-      this.busy = false;
-    else
-      this.execute(next);
-  },
+      if (entry == null
+          || Date.now() - entry.first > guild.spam.duration * 1e3) {
+        this.entries.set(msg.author.id, {
+          count: 1,
+          first: Date.now()
+        });
+      } else {
+        entry.count++;
 
-  execute(record) {
-    record[0]().then(record[1], record[2]).then(() => this.dequeue());
-  },
-
-  queue: [],
-
-  synchronize(task) {
-    return new Promise((res, rej) => {
-      this.queue.push([task, res, rej]);
-
-      if (this.busy === false)
-        this.dequeue();
+        if (entry.count >= guild.spam.msg_limit) {
+          await modService.autoMute(msg, guild.moderation.mute_length);
+          await db.changeRep(
+            msg.channel.guild.id,
+            msg.author.id,
+            -guild.spam.rep_penalty
+          );
+        }
+      }
     });
   }
 };

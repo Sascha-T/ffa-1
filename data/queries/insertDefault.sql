@@ -1,0 +1,4 @@
+INSERT INTO {0}({1})
+    VALUES($1, {2})
+ON CONFLICT ({3})
+    DO NOTHING

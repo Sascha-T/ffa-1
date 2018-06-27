@@ -20,8 +20,10 @@ const {Command, Context} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const registry = require("../../services/registry.js");
+const {data: {responses}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class CommandsCommand extends Command {
+module.exports = new class Commands extends Command {
   constructor() {
     super({
       description: "List of all the commands.",
@@ -31,20 +33,24 @@ module.exports = new class CommandsCommand extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg) {
     const reply = {
-      description: message.list(registry.commands.map(cmd => ({
-        description: cmd.description,
-        name: `${config.bot.prefix}${cmd.names[0]}`
-      })), "name", "description"),
+      description: registry.commands.map(cmd => str.format(
+        responses.itemList,
+        `${config.bot.prefix}${cmd.names[0]}`,
+        cmd.description
+      )).join("\n"),
       title: "Commands"
     };
 
-    if (msg.channel.guild == null)
+    if (msg.channel.guild == null) {
       await message.create(msg.channel, reply);
-    else {
+    } else {
       await message.dm(msg.author, reply);
-      await message.reply(msg, "you have been DMed with a list of all commands.");
+      await message.reply(
+        msg,
+        "you have been DMed with a list of all commands."
+      );
     }
   }
 }();

@@ -20,9 +20,10 @@ const {Argument, Command, Context} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
 const registry = require("../../services/registry.js");
+const {data: {descriptions, responses}} = require("../../services/data.js");
 const str = require("../../utilities/string.js");
 
-module.exports = new class ModuleCommand extends Command {
+module.exports = new class Module extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -32,9 +33,17 @@ module.exports = new class ModuleCommand extends Command {
         name: "name",
         type: "group"
       })],
-      description: "List of all commands in a module if one is provided. If not, all modules are listed.",
+      description: descriptions.module,
       groupName: "system",
-      names: ["module", "modules", "category", "categories", "group", "groups", "modulelist", "categorylist", "grouplist"],
+      names: ["module",
+        "modules",
+        "category",
+        "categories",
+        "group",
+        "groups",
+        "modulelist",
+        "categorylist",
+        "grouplist"],
       usableContexts: [Context.DM, Context.Guild]
     });
     this.uses = 0;
@@ -43,15 +52,20 @@ module.exports = new class ModuleCommand extends Command {
   async run(msg, args) {
     if (args.group === false) {
       await message.create(msg.channel, {
-        description: message.list(registry.groups, "name", "description"),
+        description: registry.groups.map(group => str.format(
+          responses.itemList,
+          `${str.capitalize(group.name)}:`,
+          group.description
+        )).join("\n"),
         title: "Modules"
       });
     } else {
       await message.create(msg.channel, {
-        description: message.list(args.group.commands.map(cmd => ({
-          description: cmd.description,
-          name: `${config.bot.prefix}${cmd.names[0]}`
-        })), "name", "description"),
+        description: args.group.commands.map(cmd => str.format(
+          responses.itemList,
+          `${config.bot.prefix}${cmd.names[0]}`,
+          cmd.description
+        )).join("\n"),
         title: `${str.pluralize(str.capitalize(args.group.name))} Commands`
       });
     }

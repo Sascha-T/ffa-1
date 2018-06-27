@@ -17,43 +17,47 @@
  */
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
-const {number} = require("../utilities/regexes.js");
+const {data: {regexes: {number}}} = require("../services/data.js");
 const ruleService = require("../services/rules.js");
 
-module.exports = new class RuleReader extends TypeReader {
+module.exports = new class Rule extends TypeReader {
   constructor() {
-    super({
-      type: "rule"
-    });
+    super({type: "rule"});
   }
 
   async read(cmd, msg, arg, args, val) {
     const result = val.match(number);
 
-    if (result != null) {
-      const categories = await ruleService.getCategories(msg.channel.guild.id);
-      const category = Number(result[0]) - 1;
-
-      if (Number.isInteger(category) && categories.length > category && category > -1) {
-        let rule = val.slice(result.length - 1);
-
-        if (rule.length < 3) {
-          rule = ruleService.countLetters(rule);
-
-          if (rule !== -1 && rule < categories[category].length) {
-            return TypeReaderResult.fromSuccess({
-              content: categories[category][rule],
-              name: val
-            });
-          }
-        }
-
-        return TypeReaderResult.fromError(cmd, "you have provided invalid rule letters.");
-      }
-
-      return TypeReaderResult.fromError(cmd, "you have provided an invalid rule category number.");
+    if (result == null) {
+      return TypeReaderResult.fromError(
+        cmd,
+        "you have provided an invalid rule format."
+      );
     }
 
-    return TypeReaderResult.fromError(cmd, "you have provided an invalid rule format.");
+    const categories = await ruleService.getCategories(msg.channel.guild.id);
+    const category = Number(result[0]) - 1;
+
+    if (Number.isInteger(category) === false || categories.length <= category
+        || category === -1) {
+      return TypeReaderResult.fromError(
+        cmd,
+        "you have provided an invalid rule category number."
+      );
+    }
+
+    let rule = val.slice(result.length - 1);
+
+    if (rule.length < 3) {
+      rule = ruleService.countLetters(rule);
+
+      if (rule < categories[category].length)
+        return TypeReaderResult.fromSuccess(categories[category][rule]);
+    }
+
+    return TypeReaderResult.fromError(
+      cmd,
+      "you have provided invalid rule letters."
+    );
   }
 }();

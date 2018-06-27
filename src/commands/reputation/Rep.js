@@ -18,17 +18,18 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
 
-module.exports = new class RepCommand extends Command {
+module.exports = new class Rep extends Command {
   constructor() {
     super({
       args: [new Argument({
-        example: "AlabamaTrigger#0001",
-        key: "a",
+        example: "ElJay#7711",
+        key: "user",
         name: "user",
         preconditions: ["noself", "nobot"],
+        remainder: true,
         type: "user"
       })],
       cooldown: config.cd.rep * 1e3,
@@ -40,9 +41,15 @@ module.exports = new class RepCommand extends Command {
   }
 
   async run(msg, args) {
-    const {rep: {increase}} = await Database.getGuild(msg.channel.guild.id, {rep: "increase"});
+    const {rep: {increase}} = await db.getGuild(
+      msg.channel.guild.id,
+      {rep: "increase"}
+    );
 
-    await Database.changeRep(msg.channel.guild.id, args.a.id, increase);
-    await message.reply(msg, `you have successfully repped **${message.tag(args.a)}**.`);
+    await db.changeRep(msg.channel.guild.id, args.user.id, increase);
+    await message.reply(
+      msg,
+      `you have successfully repped **${message.tag(args.user)}**.`
+    );
   }
 }();

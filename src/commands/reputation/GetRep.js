@@ -17,11 +17,12 @@
  */
 "use strict";
 const {Argument, ArgumentDefault, Command} = require("patron.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
+const {data: {responses, queries}} = require("../../services/data.js");
 const str = require("../../utilities/string.js");
 
-module.exports = new class GetRepCommand extends Command {
+module.exports = new class GetRep extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -29,34 +30,32 @@ module.exports = new class GetRepCommand extends Command {
         example: "@Nolan#6900",
         key: "user",
         name: "user",
+        remainder: true,
         type: "user"
       })],
       description: "Get anyone's reputation.",
       groupName: "reputation",
-      names: ["getrep", "getrank"]
+      names: ["getrep", "rank"]
     });
+    this.lbQuery = str.format(queries.selectRep, "DESC");
   }
 
   async run(msg, args) {
-    await Database.getUser(msg.channel.guild.id, msg.author.id);
-    const query = await Database.pool.query(
-      "SELECT user_id, reputation FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC",
-      [msg.channel.guild.id]
-    );
-    const len = query.rows.length - 1;
-    let pos = query.rows.length;
-    let reputation = query.rows[len].reputation;
+    const res = await db.pool.query(this.lbQuery, [msg.channel.guild.id]);
+    const len = res.rows.length - 1;
+    let pos = res.rows.length;
+    let {reputation} = res.rows[len];
 
     for (let i = 0; i < len; i++) {
-      if (query.rows[i].user_id === args.user.id) {
+      if (res.rows[i].user_id === args.user.id) {
         pos = i + 1;
-        reputation = query.rows[i].reputation;
+        ({reputation} = res.rows[i]);
         break;
       }
     }
 
     await message.create(msg.channel, {
-      description: `**Reputation:** ${reputation.toFixed(2)}\n**Rank:** #${pos}`,
+      description: str.format(responses.repRank, reputation.toFixed(2), pos),
       title: `${str.pluralize(message.tag(args.user))} Reputation`
     });
   }

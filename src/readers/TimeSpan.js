@@ -17,15 +17,17 @@
  */
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
-const {times} = require("../utilities/constants.js");
-const {number} = require("../utilities/regexes.js");
+const {
+  data: {
+    constants: {times},
+    regexes: {number}
+  }
+} = require("../services/data.js");
 const keys = Object.keys(times);
 
-module.exports = new class TimeSpanReader extends TypeReader {
+module.exports = new class TimeSpan extends TypeReader {
   constructor() {
-    super({
-      type: "timespan"
-    });
+    super({type: "timespan"});
   }
 
   async read(cmd, msg, arg, args, val) {
@@ -35,17 +37,20 @@ module.exports = new class TimeSpanReader extends TypeReader {
       result = Number(result[0]);
 
       if (Number.isNaN(result) === false) {
-        const lastIndex = val.length - 1;
+        const unit = keys.find(k => val.endsWith(k.charAt(0)) === true);
 
-        if (keys.some(k => val.indexOf(k) === lastIndex) === true)
-          result = Math.round(result * times[val.charAt(lastIndex)]);
+        if (unit == null)
+          result = Math.round(result * times.hour[0]);
         else
-          result = Math.round(result * times.h);
+          result = Math.round(result * times[unit][0]);
 
         return TypeReaderResult.fromSuccess(result);
       }
     }
 
-    return TypeReaderResult.fromError(cmd, "you have provided an invalid time.");
+    return TypeReaderResult.fromError(
+      cmd,
+      "you have provided an invalid time."
+    );
   }
 }();

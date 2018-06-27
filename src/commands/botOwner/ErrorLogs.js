@@ -16,14 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const fs = require("fs");
 const {Command, Context} = require("patron.js");
-const util = require("util");
 const Logger = require("../../utilities/Logger.js");
 const message = require("../../utilities/message.js");
-const readFile = util.promisify(fs.readFile);
+const {tryRead} = require("../../utilities/files.js");
 
-module.exports = new class ErrorLogsCommand extends Command {
+module.exports = new class ErrorLogs extends Command {
   constructor() {
     super({
       description: "Sends the error logs as an attached file.",
@@ -35,16 +33,10 @@ module.exports = new class ErrorLogsCommand extends Command {
 
   async run(msg) {
     const name = `${Logger.dateStr}-Errors`;
-    let file;
+    const file = await tryRead(`${Logger.logsPath}/${name}`);
 
-    try {
-      file = await readFile(`${Logger.logsPath}/${name}`);
-    } catch (e) {
-      if (e.code === "ENOENT")
-        return message.replyError(msg, "No error log file has been created.");
-      else
-        throw e;
-    }
+    if (file == null)
+      return message.replyError(msg, "No error log file has been created.");
 
     await msg.channel.createMessage("", {
       file,

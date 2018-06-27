@@ -17,34 +17,24 @@
  */
 "use strict";
 const {config} = require("../services/cli.js");
-const Database = require("../services/Database.js");
+const db = require("../services/database.js");
 const modService = require("../services/moderation.js");
+const cooldowns = new Map();
 
-const wait = config.timer.autoUnmute * 1e3;
-async function loop() {
-  const query = await Database.pool.query(
-    "SELECT * FROM logs WHERE timestamp > $1 AND type < 4",
-    [Math.floor(Date.now() / 1e3) - config.max.mute]
+module.exports = async (msg, guild) => {
+  const isMuted = await modService.isMuted(
+    msg.channel.guild.id,
+    msg.author.id
   );
 
-  for (let i = 0; i < query.rows.length; i++) {
-    const row = query.rows[i];
-
-    if (row.type === 0 || row.type === 2) {
-      const unmute = query.rows.find(r => {
-        return r.guild_id === row.guild_id && r.user_id === row.user_id && (r.type === 1 || r.type === 3) &&
-          r.timestamp > row.timestamp;
-      });
-
-      if (unmute != null)
-        continue;
-
-      if (row.timestamp < Math.floor(Date.now() / 1e3) - row.data.length)
-        await modService.autoUnmute(row);
-    }
+  if (msg.content.startsWith(config.bot.prefix) === false && isMuted === false
+      && (cooldowns.has(msg.author.id) === false
+      || cooldowns.get(msg.author.id) >= Date.now())) {
+    cooldowns.set(msg.author.id, Date.now() + guild.chat.delay);
+    await db.changeRep(
+      msg.channel.guild.id,
+      msg.author.id,
+      guild.chat.reward
+    );
   }
-
-  setTimeout(() => loop(), wait);
-}
-
-loop();
+};

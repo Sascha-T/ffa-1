@@ -19,9 +19,10 @@
 const {Command, Context} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
+const {data: {responses}} = require("../../services/data.js");
 const str = require("../../utilities/string.js");
 
-module.exports = new class HelpCommand extends Command {
+module.exports = new class Help extends Command {
   constructor() {
     super({
       description: "Information about the bot.",
@@ -29,18 +30,22 @@ module.exports = new class HelpCommand extends Command {
       names: ["help", "information", "info"],
       usableContexts: [Context.DM, Context.Guild]
     });
-    this.helpMsg = str.format(config.guild.helpMsg, config.bot.prefix, config.guild.invite);
+    this.helpMsg = str.format(
+      responses.helpMsg,
+      config.bot.prefix,
+      config.guild.invite
+    );
   }
 
-  async run(msg, args) {
+  async run(msg) {
     const reply = {
       description: this.helpMsg,
       title: "FFA Information"
     };
 
-    if (msg.channel.guild == null)
+    if (msg.channel.guild == null) {
       await message.create(msg.channel, reply);
-    else {
+    } else {
       await message.dm(msg.author, reply);
       await message.reply(msg, "you have been DMed with bot information.");
     }

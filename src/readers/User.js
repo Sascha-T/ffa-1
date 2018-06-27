@@ -18,13 +18,11 @@
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
 const client = require("../services/client.js");
-const regexes = require("../utilities/regexes.js");
+const {data: {regexes}} = require("../services/data.js");
 
-module.exports = new class UserReader extends TypeReader {
+module.exports = new class User extends TypeReader {
   constructor() {
-    super({
-      type: "user"
-    });
+    super({type: "user"});
   }
 
   async read(cmd, msg, arg, args, val) {
@@ -37,26 +35,28 @@ module.exports = new class UserReader extends TypeReader {
         return TypeReaderResult.fromSuccess(client.users.get(id));
     }
 
-    if (msg.channel.guild != null) {
-      const lowerVal = val.toLowerCase();
-      const index = val.lastIndexOf("#");
+    if (msg.channel.guild == null)
+      return TypeReaderResult.fromError(cmd, "User not found.");
 
-      if (index === -1) {
-        const member = msg.channel.guild.members.find(m => m.username.toLowerCase() === lowerVal);
+    const index = val.lastIndexOf("#");
+
+    if (index === -1) {
+      const member = msg.channel.guild.members
+        .find(m => m.username === val);
+
+      if (member != null)
+        return TypeReaderResult.fromSuccess(member.user);
+    } else {
+      const discrim = val.slice(index + 1);
+      const username = val.slice(0, index).toLowerCase();
+
+      if (regexes.discrim.test(discrim) === true) {
+        const member = msg.channel.guild.members
+          .find(m => m.discriminator === discrim
+            && m.username.toLowerCase() === username);
 
         if (member != null)
           return TypeReaderResult.fromSuccess(member.user);
-      } else {
-        const discrim = val.slice(index + 1);
-        const username = val.slice(0, index).toLowerCase();
-
-        if (regexes.discrim.test(discrim) === true) {
-          const member = msg.channel.guild.members.find(m => m.discriminator === discrim &&
-              m.username.toLowerCase() === username);
-
-          if (member != null)
-            return TypeReaderResult.fromSuccess(member.user);
-        }
       }
     }
 

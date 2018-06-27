@@ -19,10 +19,12 @@
 const {Argument, Command} = require("patron.js");
 const client = require("../../services/client.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
+const {data: {responses, queries}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class UnrepLeaderboardCommand extends Command {
+module.exports = new class UnrepLeaderboard extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -30,7 +32,10 @@ module.exports = new class UnrepLeaderboardCommand extends Command {
         example: "20",
         key: "count",
         name: "count",
-        preconditionOptions: [{max: config.max.lb, min: config.min.lb}],
+        preconditionOptions: [{
+          max: config.max.lb,
+          min: config.min.lb
+        }],
         preconditions: ["between"],
         type: "integer"
       })],
@@ -38,18 +43,22 @@ module.exports = new class UnrepLeaderboardCommand extends Command {
       groupName: "reputation",
       names: ["unrepleaderboard", "unreplb", "bottom", "bottomrep"]
     });
+    this.lbQuery = str.format(queries.selectRep, "ASC LIMIT $2");
   }
 
   async run(msg, args) {
-    const query = await Database.pool.query(
-      "SELECT user_id, reputation FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation ASC LIMIT $2",
+    const res = await db.pool.query(
+      this.lbQuery,
       [msg.channel.guild.id, args.count]
     );
 
     await message.create(msg.channel, {
-      description: query.rows.map((r, i) => {
-        return `${i + 1}. **${message.tag(client.users.get(r.user_id))}**: ${r.reputation.toFixed(2)}`;
-      }).join("\n"),
+      description: res.rows.map((r, i) => str.format(
+        responses.lbEntry,
+        i + 1,
+        message.tag(client.users.get(r.user_id)),
+        r.reputation.toFixed(2)
+      )).join("\n"),
       title: "The Least Reputable Users"
     });
   }
