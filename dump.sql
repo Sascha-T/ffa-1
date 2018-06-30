@@ -16,14 +16,14 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -231,8 +231,8 @@ COPY public.channels (guild_id, log_id, rules_id, archive_id, ignored_ids) FROM 
 --
 
 COPY public.chat (delay, reward, guild_id, decay) FROM stdin;
-30	0.0250000004	408765117447274498	0.99000001
-30	0.0199999996	290759415362224139	0.99000001
+30	0.025	408765117447274498	0.99
+30	0.025	290759415362224139	0.99
 \.
 
 

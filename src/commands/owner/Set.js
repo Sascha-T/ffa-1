@@ -72,13 +72,13 @@ module.exports = new class Set extends Command {
         );
       } else if (type.includes("int") === true || type === "real") {
         await db.pool.query(
-          `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
+          `UPDATE ${args.table} SET ${args.column} = $1 WHERE guild_id = $2`,
           [Number(args.value), msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
       } else if (type === "character varying") {
         await db.pool.query(
-          `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
+          `UPDATE ${args.table} SET ${args.column} = $1 WHERE guild_id = $2`,
           [args.value, msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
