@@ -63,7 +63,7 @@ module.exports = new class Logger {
       await this.waitTillWritable();
 
     console[level.toLowerCase()](
-      `${this.dateStr} ${logColors[level]}[${level}]\x1b[0m ${msg}`
+      `${this.dateStr} ${logColors[level]}[${level}]\x1b[0m ${util.inspect(msg, {depth: 10})}`
     );
 
     const formattedMsg = `${this.dateStr} [${level}] ${msg}\n`;

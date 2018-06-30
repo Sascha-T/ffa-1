@@ -19,6 +19,7 @@
 const patron = require("patron.js");
 /* eslint-disable-next-line no-unused-vars */
 const {serv, util} = require("../../utilities/requireAll.js");
+const nodeUtil = require("util");
 
 module.exports = new class Eval extends patron.Command {
   constructor() {
@@ -66,7 +67,7 @@ module.exports = new class Eval extends patron.Command {
       },
       {
         name: "Result",
-        value: util.string.code(result === "" ? "Success." : result)
+        value: util.string.code(result === "" ? "Success." : nodeUtil.inspect(result, {depth: 3}))
       }]});
     }
   }
