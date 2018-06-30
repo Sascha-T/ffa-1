@@ -16,52 +16,34 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
+const actionService = require("../../services/maxActions.js");
+const db = require("../../services/database.js");
 const {Precondition, PreconditionResult} = require("patron.js");
-const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
-const maxActions = {};
-const delay = config.timer.resetActions * 1e3;
+const {data: {responses}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class MaxActionsPrecondition extends Precondition {
+module.exports = new class MaxActions extends Precondition {
   constructor() {
-    super({
-      name: "maxactions"
-    });
-  }
-
-  async loop() {
-    for (const key in maxActions) {
-      if (maxActions.hasOwnProperty(key) === false)
-        continue;
-
-      maxActions[key] = {first: 0};
-    }
-
-    setTimeout(() => this.loop(), delay);
+    super({name: "maxactions"});
   }
 
   async run(cmd, msg) {
-    const {moderation: {max_actions}} = await Database.getGuild(msg.channel.guild.id, {moderation: "max_actions"});
+    const {moderation: {max_actions}} = await db.getGuild(
+      msg.channel.guild.id,
+      {moderation: "max_actions"}
+    );
+    const success = await actionService.check(
+      msg.channel.guild.id,
+      msg.author.id,
+      max_actions
+    );
 
-    if (maxActions.hasOwnProperty(msg.author.id) === false ||
-        Date.now() - maxActions[msg.author.id] > 36e5) {
-      maxActions[msg.author.id] = {
-        count: 1,
-        first: Date.now()
-      };
-
+    if (success === true)
       return PreconditionResult.fromSuccess();
-    }
 
-    maxActions[msg.author.id].count++;
-
-    if (maxActions[msg.author.id].count >= max_actions) {
-      return PreconditionResult.fromError(
-        cmd,
-        `you have reached the ${max_actions} maximum moderation actions per hour.`
-      );
-    }
-
-    return PreconditionResult.fromSuccess();
+    return PreconditionResult.fromError(
+      cmd,
+      str.format(responses.maxActions, max_actions)
+    );
   }
 }();

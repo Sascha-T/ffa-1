@@ -18,7 +18,7 @@
 "use strict";
 const {Group} = require("patron.js");
 
-module.exports = new class SystemGroup extends Group {
+module.exports = new class System extends Group {
   constructor() {
     super({
       description: "System commands directly tied with FFA's functionality.",

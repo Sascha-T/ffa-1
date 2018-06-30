@@ -19,21 +19,32 @@
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
-const {logColors, logsDirectory} = require("./constants.js");
+const {
+  data: {
+    constants: {
+      logColors,
+      logsDirectory
+    }
+  }
+} = require("../services/data.js");
 const time = require("./time.js");
 const appendFile = util.promisify(fs.appendFile);
 
 module.exports = new class Logger {
   constructor() {
     const date = new Date();
+
     this.day = date.getUTCDate();
-    this.dateStr = this.formatDate(date);
+    this.dateStr = time.formatDate(date);
     this.logsPath = path.join(__dirname, `../../${logsDirectory}`);
 
     if (fs.existsSync(this.logsPath) === false)
       fs.mkdirSync(this.logsPath);
 
-    this.stream = fs.createWriteStream(`${this.logsPath}/${this.dateStr}`, {flags: "a"});
+    this.stream = fs.createWriteStream(
+      `${this.logsPath}/${this.dateStr}`,
+      {flags: "a"}
+    );
   }
 
   async log(level, msg) {
@@ -41,15 +52,24 @@ module.exports = new class Logger {
 
     if (date.getUTCDate() !== this.day) {
       this.day = date.getUTCDate();
-      this.dateStr = this.formatDate(this.date);
-      this.stream = fs.createWriteStream(`${this.logsPath}/${this.dateStr}`, {flags: "a"});
+      this.dateStr = time.formatDate(this.date);
+      this.stream = fs.createWriteStream(
+        `${this.logsPath}/${this.dateStr}`,
+        {flags: "a"}
+      );
     }
 
     if (this.stream.writable === false)
       await this.waitTillWritable();
-    console[level.toLowerCase()](`${time.clockFormat(date.getTime())} ${logColors[level]}[${level}]\x1b[0m ${msg}`);
-    const formattedMsg = `${time.clockFormat(date.getTime())} [${level}] ${msg}\n`;
+
+    console[level.toLowerCase()](
+      `${this.dateStr} ${logColors[level]}[${level}]\x1b[0m ${msg}`
+    );
+
+    const formattedMsg = `${this.dateStr} [${level}] ${msg}\n`;
+
     this.stream.write(formattedMsg);
+
     if (level === "ERROR")
       await appendFile(`${this.logsPath}/${this.dateStr}-Errors`, formattedMsg);
   }
@@ -67,11 +87,10 @@ module.exports = new class Logger {
   }
 
   error(err) {
-    this.log("ERROR", err instanceof Error ? util.inspect(err, {depth: null}) : err);
-  }
-
-  formatDate(date) {
-    return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`;
+    this.log("ERROR", err instanceof Error ? util.inspect(
+      err,
+      {depth: null}
+    ) : err);
   }
 
   waitTillWritable() {

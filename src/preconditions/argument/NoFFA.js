@@ -19,16 +19,18 @@
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
 const client = require("../../services/client.js");
 
-module.exports = new class NoFFAArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class NoFFA extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "noffa"
-    });
+    super({name: "noffa"});
   }
 
   async run(cmd, msg, arg, args, val) {
-    if (val.id === client.user.id)
-      return PreconditionResult.fromError(cmd, "this command may not be used on me.");
+    if (val.id === client.user.id) {
+      return PreconditionResult.fromError(
+        cmd,
+        "this command may not be used on me."
+      );
+    }
 
     return PreconditionResult.fromSuccess();
   }

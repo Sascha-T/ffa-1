@@ -17,14 +17,16 @@
  */
 "use strict";
 const {Group} = require("patron.js");
+const {data: {descriptions}} = require("../services/data.js");
 
-module.exports = new class ModerationGroup extends Group {
+module.exports = new class Moderation extends Group {
   constructor() {
     super({
-      description: "Commands reserved for the most reputable users to moderate the guild.",
+      description: descriptions.moderation,
       name: "moderation",
+      postconditions: ["maxactions"],
       preconditionOptions: [null, null, {column: "mod"}],
-      preconditions: ["maxactions", "notmuted", "top"]
+      preconditions: ["maxactions", "modrole", "top"]
     });
   }
 }();

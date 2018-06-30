@@ -19,7 +19,7 @@
 const {Command, Context} = require("patron.js");
 const message = require("../../utilities/message.js");
 
-module.exports = new class RebootCommand extends Command {
+module.exports = new class Reboot extends Command {
   constructor() {
     super({
       description: "Reboots the bot.",

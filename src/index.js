@@ -17,32 +17,41 @@
  */
 "use strict";
 process.env.TZ = "utc";
-console.log(require("./utilities/constants.js").licenseNotice);
 
-const patron = require("patron.js");
-const path = require("path");
-const cli = require("./services/cli.js");
-const Logger = require("./utilities/Logger.js");
-
-async function reqAbs(dir) {
-  return patron.RequireAll(path.join(__dirname, dir));
-}
+const data = require("./services/data.js");
+let Logger;
+const reqAbs = require("./utilities/reqAbs.js");
 
 (async () => {
+  await data.fetch();
+  console.log(data.data.responses.licenseNotice);
+
+  const cli = require("./services/cli.js");
+  Logger = require("./utilities/Logger.js");
+
   await cli.checkLicense();
-  await cli.fetchIni();
+  await cli.fetch();
 
   const client = require("./services/client.js");
   const registry = require("./services/registry.js");
-  registry.registerArgumentPreconditions(await reqAbs("./preconditions/argument"))
-  .registerPreconditions(await reqAbs("./preconditions/command"))
-  .registerTypeReaders(await reqAbs("./readers"))
-  .registerGroups(await reqAbs("./groups"))
-  .registerCommands(await reqAbs("./commands"));
 
-  await reqAbs("./events");
+  registry
+    .registerArgumentPreconditions(await reqAbs(
+      __dirname,
+      "./preconditions/argument"
+    ))
+    .registerPostconditions(await reqAbs(__dirname, "./postconditions"))
+    .registerPreconditions(await reqAbs(__dirname, "./preconditions/command"))
+    .registerTypeReaders(await reqAbs(__dirname, "./readers"))
+    .registerGroups(await reqAbs(__dirname, "./groups"))
+    .registerCommands(await reqAbs(__dirname, "./commands"));
+  await reqAbs(__dirname, "./events");
   await client.connect();
 })().catch(e => {
-  Logger.error(e);
+  if (Logger == null)
+    console.error(e);
+  else
+    Logger.error(e);
+
   process.exit(1);
 });

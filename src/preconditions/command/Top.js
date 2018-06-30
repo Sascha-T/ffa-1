@@ -17,27 +17,33 @@
  */
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
+const {data: {queries}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class TopPrecondition extends Precondition {
+module.exports = new class Top extends Precondition {
   constructor() {
-    super({
-      name: "top"
-    });
+    super({name: "top"});
+    this.lbQuery = str.format(queries.selectRep, "DESC LIMIT $2");
   }
 
   async run(cmd, msg, opt) {
-    let query = await Database.getGuild(msg.channel.guild.id, {top: opt.column});
-    const count = query.top[opt.column];
-    query = await Database.pool.query(
-      "SELECT user_id FROM users WHERE (guild_id, in_guild) = ($1, true) ORDER BY reputation DESC LIMIT $2",
+    let res = await db.getGuild(msg.channel.guild.id, {top: opt.column});
+    const count = res.top[opt.column];
+
+    res = await db.pool.query(
+      this.lbQuery,
       [msg.channel.guild.id, count]
     );
-    const result = query.rows.some(r => r.user_id === msg.author.id);
+
+    const result = res.rows.some(r => r.user_id === msg.author.id);
 
     if (result === true)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, `this command may only be used by the top ${count} most reputable users.`);
+    return PreconditionResult.fromError(
+      cmd,
+      `this command may only be used by the top ${count} most reputable users.`
+    );
   }
 }();

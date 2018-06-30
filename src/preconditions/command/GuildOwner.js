@@ -18,17 +18,18 @@
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
 
-module.exports = new class GuildOwnerPrecondition extends Precondition {
+module.exports = new class GuildOwner extends Precondition {
   constructor() {
-    super({
-      name: "guildowner"
-    });
+    super({name: "guildowner"});
   }
 
-  async run(cmd, msg, opt) {
-    if (msg.channel.guild.ownerID === msg.author.id || msg.author.id === "222093436520628225") // TODO delet this
+  async run(cmd, msg) {
+    if (msg.channel.guild.ownerID === msg.author.id)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, "this command may only by used by the guild owner.");
+    return PreconditionResult.fromError(
+      cmd,
+      "this command may only by used by the guild owner."
+    );
   }
 }();

@@ -19,16 +19,18 @@
 const {Precondition, PreconditionResult} = require("patron.js");
 const {auth} = require("../../services/cli.js");
 
-module.exports = new class BotOwnerPrecondition extends Precondition {
+module.exports = new class BotOwner extends Precondition {
   constructor() {
-    super({
-      name: "botowners"
-    });
+    super({name: "botowners"});
   }
 
-  async run(cmd, msg, opt) {
-    if (auth.bot.owners.indexOf(msg.author.id) === -1)
-      return PreconditionResult.fromError(cmd, "this command may only be used by the bot owners.");
+  async run(cmd, msg) {
+    if (auth.bot.owners.includes(msg.author.id) === false) {
+      return PreconditionResult.fromError(
+        cmd,
+        "this command may only be used by the bot owners."
+      );
+    }
 
     return PreconditionResult.fromSuccess();
   }

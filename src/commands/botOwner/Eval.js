@@ -16,17 +16,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Argument, Command, Context} = require("patron.js");
-const cli = require("../../services/cli.js");
-const message = require("../../utilities/message.js");
-const string = require("../../utilities/string.js");
+const patron = require("patron.js");
+/* eslint-disable-next-line no-unused-vars */
+const {serv, util} = require("../../utilities/requireAll.js");
 
-module.exports = new class EvalCommand extends Command {
+module.exports = new class Eval extends patron.Command {
   constructor() {
     super({
-      args: [new Argument({
+      args: [new patron.Argument({
         example: "console.log(\"Hello World!\");",
-        key: "a",
+        key: "code",
         name: "code",
         remainder: true,
         type: "string"
@@ -34,43 +33,41 @@ module.exports = new class EvalCommand extends Command {
       description: "Evaluates JavaScript code",
       groupName: "botowners",
       names: ["eval", "ev"],
-      usableContexts: [Context.DM, Context.Guild]
+      usableContexts: [patron.Context.DM, patron.Context.Guild]
     });
   }
 
   async run(msg, args) {
+    /* eslint-disable no-unused-vars */
+    const {author: user, channel, member} = msg;
+    const {guild} = msg.channel;
+    /* eslint-enable no-unused-vars */
     let result;
 
     try {
-      result = await eval(args.a);
+      result = await eval(args.code);
     } catch (e) {
       result = e;
     }
 
     if (result instanceof Error) {
-      await message.create(msg.channel, {
-        fields: [{
-          inline: true,
-          name: "Eval",
-          value: string.code(args.a)
-        }, {
-          inline: true,
-          name: "Error",
-          value: string.code(result)
-        }]
-      }, cli.config.customColors.error);
+      await util.message.create(msg.channel, {fields: [{
+        name: "Eval",
+        value: util.string.code(args.code)
+      },
+      {
+        name: "Error",
+        value: util.string.code(result)
+      }]}, serv.cli.config.customColors.error);
     } else {
-      await message.create(msg.channel, {
-        fields: [{
-          inline: true,
-          name: "Eval",
-          value: string.code(args.a)
-        }, {
-          inline: true,
-          name: "Result",
-          value: string.code(result)
-        }]
-      });
+      await util.message.create(msg.channel, {fields: [{
+        name: "Eval",
+        value: util.string.code(args.code, args.code === "" ? "" : "js")
+      },
+      {
+        name: "Result",
+        value: util.string.code(result === "" ? "Success." : result)
+      }]});
     }
   }
 }();

@@ -17,23 +17,27 @@
  */
 "use strict";
 const fs = require("fs");
-const homedir = require("os").homedir();
-const ini = require("ini");
 const path = require("path");
-const util = require("util");
+const yaml = require("js-yaml");
 const {argv} = require("yargs").options({
   auth: {
     alias: "a",
-    coerce: arg => ini.parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
-    desc: "Authentication file using the ini format.",
-    example: "./ffaAuth.ini",
+    coerce: arg => yaml.safeLoad(fs.readFileSync(
+      path.join(__dirname, `../${arg}`),
+      "utf8"
+    )),
+    desc: "Authentication file using the yaml format.",
+    example: "./ffaAuth.yml",
     type: "string"
   },
   config: {
     alias: "c",
-    coerce: arg => ini.parse(fs.readFileSync(path.join(__dirname, `../${arg}`), "utf8")),
-    desc: "Configuration file using the ini format.",
-    example: "./ffa.ini",
+    coerce: arg => yaml.safeLoad(fs.readFileSync(
+      path.join(__dirname, `../${arg}`),
+      "utf8"
+    )),
+    desc: "Configuration file using the yaml format.",
+    example: "./ffa.yml",
     type: "string"
   },
   license: {
@@ -42,48 +46,21 @@ const {argv} = require("yargs").options({
     type: "boolean"
   }
 }).epilogue("For more information see: https://github.com/LJNeon/ffa")
-.help("help", "Show this help message.").alias("help", "h")
-.version().describe("version", "Show the version number.").alias("version", "v");
+  .help("help", "Show this help message.")
+  .alias("help", "h")
+  .version()
+  .describe("version", "Show the version number.")
+  .alias("version", "v");
+const {data: {responses}} = require("./data.js");
+const homedir = require("os").homedir();
+const util = require("util");
+const str = require("../utilities/string.js");
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 
-function parseNumbers(ini) {
-  const obj = {...ini};
-
-  for (const prop in obj) {
-    if (obj.hasOwnProperty(prop) === false || typeof obj[prop] === "boolean")
-      continue;
-
-    if (Array.isArray(obj[prop]) === true) {
-      obj[prop] = obj[prop].map(i => {
-        if (typeof i === "boolean")
-          return i;
-
-        if (typeof i !== "string")
-          return parseNumbers(i);
-
-        const number = Number(i);
-
-        if (Number.isNaN(number) === false && number <= Number.MAX_SAFE_INTEGER)
-          return number;
-
-        return i;
-      });
-    } else if (typeof obj[prop] === "string") {
-      const number = Number(obj[prop]);
-
-      if (Number.isNaN(number) === false && number <= Number.MAX_SAFE_INTEGER)
-        obj[prop] = number;
-    } else
-      obj[prop] = parseNumbers(obj[prop]);
-  }
-
-  return obj;
-}
-
 async function parse(bool, dir, files, file) {
-  if (bool === false && files.indexOf(file) !== -1)
-    return parseNumbers(ini.parse(await readFile(path.join(dir, file), "utf8")));
+  if (bool === false && files.includes(file) === true)
+    return yaml.safeLoad(await readFile(path.join(dir, file), "utf8"));
 
   return bool;
 }
@@ -94,45 +71,44 @@ module.exports = {
   async checkLicense() {
     if (argv.license === true) {
       console.clear();
-      console.log(await readFile(path.join(__dirname, "../../LICENSE"), "utf8"));
+      console.log(await readFile(
+        path.join(__dirname, "../../LICENSE"),
+        "utf8"
+      ));
       process.exit(0);
     }
   },
 
   config: false,
 
-  async fetchIni() {
+  async fetch() {
     if (this.auth === false || this.config === false) {
-      let files;
-
       if (argv.auth != null)
         this.auth = argv.auth;
 
       if (argv.config != null)
         this.config = argv.config;
 
+      await this.searchIfNeeded(path.join(__dirname, "../../"));
+      await this.searchIfNeeded(homedir);
+
       if (this.auth === false || this.config === false) {
-        const dir = path.join(__dirname, "../../");
-        files = await readDir(dir);
-        this.auth = await parse(this.auth, dir, files, "ffaAuth.ini");
-        this.config = await parse(this.config, dir, files, "ffa.ini");
-
-        if (this.auth === false || this.config === false) {
-          files = await readDir(homedir);
-          this.auth = await parse(this.auth, homedir, files, "ffaAuth.ini");
-          this.config = await parse(this.config, homedir, files, "ffa.ini");
-
-          if (this.auth === false) {
-            console.error("Unable to locate ffaAuth.ini. Please double-check that it's in the working directory, your home directory, or the --auth argument.");
-            process.exit(1);
-          } else if (this.config === false) {
-            console.error("Unable to locate ffa.ini. Please double-check that it's in the working directory, your home directory, or the --config argument.");
-            process.exit(1);
-          }
-        }
+        console.error(str.format(
+          responses.cantLocate,
+          `ffa${this.auth === false ? "Auth" : ""}.yml`,
+          `--${this.auth === false ? "auth" : "config"}`
+        ));
+        process.exit(1);
       }
     }
+  },
 
-    return {auth: this.auth, config: this.config};
+  async searchIfNeeded(dir) {
+    if (this.auth === false || this.config === false) {
+      const files = await readDir(dir);
+
+      this.auth = await parse(this.auth, dir, files, "ffaAuth.yml");
+      this.config = await parse(this.config, dir, files, "ffa.yml");
+    }
   }
 };

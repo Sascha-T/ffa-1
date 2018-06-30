@@ -18,10 +18,16 @@
 "use strict";
 const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
+const {data: {responses, queries}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class SetCommand extends Command {
+/**
+ * TODO delete this command, the query sql file, and the responses entries,
+ * when web dashboard is finished.
+ */
+module.exports = new class Set extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -29,12 +35,14 @@ module.exports = new class SetCommand extends Command {
         key: "table",
         name: "table",
         type: "string"
-      }), new Argument({
+      }),
+      new Argument({
         example: "increase",
         key: "column",
         name: "column",
         type: "string"
-      }), new Argument({
+      }),
+      new Argument({
         example: "5",
         key: "value",
         name: "value",
@@ -47,35 +55,40 @@ module.exports = new class SetCommand extends Command {
   }
 
   async run(msg, args) {
-    const column = await Database.pool.query(
-      `SELECT data_type FROM information_schema.columns WHERE (table_schema, table_name, column_name) = ('public', $1, $2)`,
+    const column = await db.pool.query(
+      queries.columnType,
       [args.table, args.column]
     );
 
-    if (column.rows.length === 0)
+    if (column.rows.length === 0) {
       await message.replyError(msg, "invalid table and column pair specified.");
-    else {
+    } else {
       const type = column.rows[0].data_type;
 
       if (type === "ARRAY") {
         await message.replyError(
           msg,
-          `this column is a list, use either \`${config.bot.prefix}add\` or \`${config.bot.prefix}remove\`.`
+          str.format(responses.setList, config.bot.prefix)
         );
-      } else if (type.indexOf("int") !== -1 || type === "real") {
-        await Database.pool.query(
+      } else if (type.includes("int") === true || type === "real") {
+        await db.pool.query(
           `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
           [Number(args.value), msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
       } else if (type === "character varying") {
-        await Database.pool.query(
+        await db.pool.query(
           `UPDATE ${args.table} SET ${args.column} = $1 WHERE id = $2`,
           [args.value, msg.channel.guild.id]
         );
         await message.reply(msg, "column updated.");
-      } else
-        throw new TypeError(`Table ${args.table} Column ${args.column} has an unsupported type.`);
+      } else {
+        throw new TypeError(str.format(
+          responses.setErr,
+          args.table,
+          args.column
+        ));
+      }
     }
   }
 }();

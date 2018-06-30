@@ -18,11 +18,9 @@
 "use strict";
 const {TypeReader, TypeReaderResult} = require("patron.js");
 
-module.exports = new class StringReader extends TypeReader {
+module.exports = new class Str extends TypeReader {
   constructor() {
-    super({
-      type: "string"
-    });
+    super({type: "string"});
   }
 
   async read(cmd, msg, arg, args, val) {

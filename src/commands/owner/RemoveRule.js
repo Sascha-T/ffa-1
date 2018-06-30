@@ -17,11 +17,11 @@
  */
 "use strict";
 const {Argument, Command} = require("patron.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const message = require("../../utilities/message.js");
 const ruleService = require("../../services/rules.js");
 
-module.exports = new class AddRuleCommand extends Command {
+module.exports = new class RemoveRule extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -37,9 +37,11 @@ module.exports = new class AddRuleCommand extends Command {
   }
 
   async run(msg, args) {
-    await Database.pool.query(
-      "DELETE FROM rules WHERE (id, category, timestamp) = ($1, $2, $3)",
-      [msg.channel.guild.id, args.rule.content.category.toLowerCase(), args.rule.content.timestamp]
+    const category = args.rule.category.toLowerCase();
+
+    await db.pool.query(
+      "DELETE FROM rules WHERE (guild_id, category, epoch) = ($1, $2, $3)",
+      [msg.channel.guild.id, category, args.rule.epoch]
     );
     await message.reply(msg, "you have successfully removed this rule.");
     await ruleService.update(msg.channel.guild.id);

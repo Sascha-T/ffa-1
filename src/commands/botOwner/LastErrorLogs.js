@@ -16,15 +16,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const fs = require("fs");
 const {Argument, Command, Context} = require("patron.js");
-const util = require("util");
 const Logger = require("../../utilities/Logger.js");
 const message = require("../../utilities/message.js");
 const string = require("../../utilities/string.js");
-const readFile = util.promisify(fs.readFile);
+const {tryRead} = require("../../utilities/files.js");
 
-module.exports = new class LastErrorLogsCommand extends Command {
+module.exports = new class LastErrorLogs extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -32,6 +30,11 @@ module.exports = new class LastErrorLogsCommand extends Command {
         example: "15",
         key: "count",
         name: "line count",
+        preconditionOptions: [{
+          max: 30,
+          min: 1
+        }],
+        preconditions: ["between"],
         type: "integer"
       })],
       description: "Sends the most recent error logs.",
@@ -43,19 +46,17 @@ module.exports = new class LastErrorLogsCommand extends Command {
 
   async run(msg, args) {
     const name = `${Logger.dateStr}-Errors`;
-    let lines;
+    const content = await tryRead(`${Logger.logsPath}/${name}`, "utf8");
 
-    try {
-      const file = await readFile(`${Logger.logsPath}/${name}`, "utf8");
-      lines = file.split("\n");
-    } catch (e) {
-      if (e.code === "ENOENT")
-        return message.replyError(msg, "no error log file has been created.");
-      else
-        throw e;
-    }
+    if (content == null)
+      return message.replyError(msg, "no error log file has been created.");
 
-    const firstLine = args.count < lines.length ? lines.length - args.count - 1 : 0;
+    const lines = content.split("\n");
+    let firstLine = 0;
+
+    if (args.count < lines.length)
+      firstLine = lines.length - args.count - 1;
+
     const reply = lines.slice(firstLine).join("\n");
 
     await message.create(msg.channel, string.code(reply));

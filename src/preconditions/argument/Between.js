@@ -17,24 +17,38 @@
  */
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
+const {data: {responses}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class BetweenArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class Between extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "between"
-    });
+    super({name: "between"});
   }
 
   async run(cmd, msg, arg, args, val, opt) {
-    if ((opt.min == null || val >= opt.min) && (opt.max == null || val <= opt.max))
+    if ((opt.min == null || val >= opt.min) && (opt.max == null
+        || val <= opt.max))
       return PreconditionResult.fromSuccess();
 
-    if (opt.min == null)
-      return PreconditionResult.fromError(cmd, `the ${arg.name} must be above ${opt.min}.`);
+    if (opt.min == null) {
+      return PreconditionResult.fromError(
+        cmd,
+        `the ${arg.name} must be below ${opt.max}.`
+      );
+    }
 
-    if (opt.max == null)
-      return PreconditionResult.fromError(cmd, `the ${arg.name} must be below ${opt.max}.`);
+    if (opt.max == null) {
+      return PreconditionResult.fromError(
+        cmd,
+        `the ${arg.name} must be above ${opt.min}.`
+      );
+    }
 
-    return PreconditionResult.fromError(cmd, `the ${arg.name} must be between ${opt.min} and ${opt.max}.`);
+    return PreconditionResult.fromError(cmd, str.format(
+      responses.between,
+      arg.name,
+      opt.min,
+      opt.max
+    ));
   }
 }();

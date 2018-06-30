@@ -20,7 +20,7 @@ const {Argument, Command} = require("patron.js");
 const {config} = require("../../services/cli.js");
 const modService = require("../../services/moderation.js");
 
-module.exports = new class UnmuteCommand extends Command {
+module.exports = new class Unmute extends Command {
   constructor() {
     super({
       args: [new Argument({
@@ -29,7 +29,8 @@ module.exports = new class UnmuteCommand extends Command {
         name: "user",
         preconditions: ["noself"],
         type: "user"
-      }), new Argument({
+      }),
+      new Argument({
         example: "he apologized",
         key: "reason",
         name: "reason",
@@ -39,6 +40,7 @@ module.exports = new class UnmuteCommand extends Command {
         type: "string"
       })],
       botPermissions: ["manageRoles"],
+      cooldown: config.cd.unmute * 1e3,
       description: "Unmute any guild user.",
       groupName: "moderation",
       names: ["unmute"]
@@ -46,6 +48,6 @@ module.exports = new class UnmuteCommand extends Command {
   }
 
   async run(msg, args) {
-    await modService.unmute(msg, args);
+    return modService.unmute(msg, args);
   }
 }();

@@ -16,19 +16,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const client = require("../services/client.js");
-const {config} = require("../services/cli.js");
-const Database = require("../services/Database.js");
+const modRoleUpdate = require("../../services/modRoleUpdate.js");
+const {Precondition, PreconditionResult} = require("patron.js");
 
-const wait = config.timer.repDecay * 1e3;
-async function loop() {
-  for (const guild of client.guilds.values()) {
-    const {chat: {decay}} = await Database.getGuild(guild.id, {chat: "decay"});
-
-    await Database.pool.query("UPDATE users SET reputation = reputation * $1 WHERE guild_id = $2", [decay, guild.id]);
+module.exports = new class ModRole extends Precondition {
+  constructor() {
+    super({name: "modrole"});
   }
 
-  setTimeout(() => loop(), wait);
-}
+  async run(cmd, msg) {
+    await modRoleUpdate(msg.channel.guild);
 
-loop();
+    return PreconditionResult.fromSuccess();
+  }
+}();

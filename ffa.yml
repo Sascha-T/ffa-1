@@ -1,0 +1,81 @@
+# Default colors
+colors: [0xFF269A, 0x66FFCC, 0x00FF00, 0xB10DC9, 0x00E828, 0xFFFF00, 0x08F8FF,
+  0x03FFAB, 0xF226FF, 0xFF00BB, 0xFF1C8E, 0x00FFFF, 0x68FF22, 0x14DEA0,
+  0xFFBE11, 0x0FFFFF, 0x2954FF, 0x40E0D0, 0x9624ED, 0x01ADB0, 0xA8ED00
+  0xBF255F]
+
+customColors: {
+  error: 0xFF0000,
+  mute: 0xFF3E29,
+  unmute: 0x72FF65,
+  clear: 0x4D3DFF
+}
+
+bot: {
+  prefix: ;,
+  game: "{0}help"
+}
+
+# Eris client options. See more at: https://abal.moe/Eris/docs/Client
+clientOptions: {
+  compress: true,
+  defaultImageFormat: png,
+  defaultImageSize: 1024,
+  getAllUsers: true,
+  latencyThreshold: 1e3,
+  disableEvents: {
+    TYPING_START: true,
+    VOICE_STATE_UPDATE: true
+  }
+}
+
+# patron.js Handler options. See more at: https://vim2meta.github.io/patron.js/global.html#HandlerOptions
+handlerOptions: {}
+
+# patron.js Registry options. See more at: https://vim2meta.github.io/patron.js/global.html#RegistryOptions
+registryOptions: {caseSensitive: false}
+
+guild: {
+  id: "290759415362224139",
+  invite: https://discord.gg/F7reg7e
+}
+
+max: {
+  lb: 30,
+  clear: 100,
+  reasonLength: 600,
+  cmdNewLines: 10,
+  deletedMsgs: 10,
+  # All times are in seconds
+  mute: 2592e3
+}
+
+min: {
+  lb: 5,
+  clear: 3,
+  deletedMsgs: 1,
+  mute: 300
+}
+
+default: {
+  clear: 20,
+  lb: 10,
+  deletedMsgs: 5,
+  mute: 2592e3
+}
+
+cd: {
+  rep: 21600,
+  unrep: 21600,
+  color: 3600,
+  unmute: 43200,
+  modCmd: 3600,
+  removeCmd: 3600
+}
+
+timer: {
+  autoUnmute: 60,
+  modRoleUpdate: 300,
+  repDecay: 3600,
+  resetActions: 3600
+}

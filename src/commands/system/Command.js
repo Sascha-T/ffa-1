@@ -16,31 +16,38 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {Argument, Command, Context} = require("patron.js");
+const patron = require("patron.js");
 const {config} = require("../../services/cli.js");
 const message = require("../../utilities/message.js");
+const {data: {descriptions}} = require("../../services/data.js");
 const str = require("../../utilities/string.js");
 
-module.exports = new class CommandCommand extends Command {
+module.exports = new class Command extends patron.Command {
   constructor() {
     super({
-      args: [new Argument({
+      args: [new patron.Argument({
         example: "rep",
-        key: "a",
+        key: "command",
         name: "name",
         type: "command"
       })],
       description: "Information about a specific command.",
       groupName: "system",
       names: ["command", "cmd", "cmdinfo", "commandinfo"],
-      usableContexts: [Context.DM, Context.Guild]
+      usableContexts: [patron.Context.DM, patron.Context.Guild]
     });
   }
 
   async run(msg, args) {
     await message.create(msg.channel, {
-      description: `**Description:** ${args.a.description}\n**Usage:** \`${config.bot.prefix}${args.a.getUsage()}\`\n**Example:** \`${config.bot.prefix}${args.a.getExample()}\``,
-      title: str.capitalize(args.a.names[0])
+      description: str.format(
+        descriptions.command,
+        args.command.description,
+        config.bot.prefix,
+        args.command.getUsage(),
+        args.command.getExample()
+      ),
+      title: str.capitalize(args.command.names[0])
     });
   }
 }();

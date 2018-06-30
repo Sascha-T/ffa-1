@@ -16,11 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {format, markdown, uppercase} = require("./regexes.js");
+const {
+  data: {
+    regexes: {
+      format,
+      markdown
+    },
+    responses
+  }
+} = require("../services/data.js");
 
 module.exports = {
   capitalize(str) {
-    return str.replace(uppercase, x => String.fromCharCode(x.charCodeAt(0) ^ 32));
+    return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
   },
 
   code(str, lang = "js") {
@@ -35,8 +43,19 @@ module.exports = {
     return str.replace(format, (m, a) => args[a]);
   },
 
+  list(arr, or = "and") {
+    if (arr.length < 3)
+      return arr.join(or === false ? ", " : ` ${or} `);
+
+    return this.format(
+      responses.list,
+      arr.slice(0, -1).join(", "),
+      or === false ? "" : `${or} `,
+      arr[arr.length - 1]
+    );
+  },
+
   pluralize(str) {
-    // TODO switch to String#endsWith() if it ever becomes faster
-    return str.lastIndexOf("s") === str.length - 1 ? `${str}'` : `${str}'s`;
+    return str.endsWith("s") === true ? `${str}'` : `${str}'s`;
   }
 };

@@ -17,23 +17,31 @@
  */
 "use strict";
 const {Precondition, PreconditionResult} = require("patron.js");
-const Database = require("../../services/Database.js");
+const db = require("../../services/database.js");
 const modService = require("../../services/moderation.js");
 
 module.exports = new class NotMutedPrecondition extends Precondition {
   constructor() {
-    super({
-      name: "notmuted"
-    });
+    super({name: "notmuted"});
   }
 
-  async run(cmd, msg, opt) {
-    const {roles: {muted_id}} = await Database.getGuild(msg.channel.guild.id, {roles: "muted_id"});
-    const muted = await modService.isMuted(msg.channel.guild.id, msg.author.id, muted_id);
+  async run(cmd, msg) {
+    const {roles: {muted_id}} = await db.getGuild(
+      msg.channel.guild.id,
+      {roles: "muted_id"}
+    );
+    const muted = await modService.isMuted(
+      msg.channel.guild.id,
+      msg.author.id,
+      muted_id
+    );
 
     if (muted === false)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, "you may not use this command while muted.");
+    return PreconditionResult.fromError(
+      cmd,
+      "you may not use this command while muted."
+    );
   }
 }();

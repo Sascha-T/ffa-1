@@ -16,13 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 "use strict";
-const {times} = require("./constants.js");
+const str = require("./string.js");
+const {data: {constants: {times}}} = require("../services/data.js");
+const keys = Object.keys(times).sort((a, b) => times[b][0] - times[a][0]);
 
 module.exports = {
   clockFormat(ms) {
-    let hours = Math.floor((ms / 36e5) % 24);
-    let mins = Math.floor((ms / 6e4) % 60);
-    let secs = Math.floor((ms / 1e3) % 60);
+    let hours = Math.floor(ms / 36e5 % 24);
+    let mins = Math.floor(ms / 6e4 % 60);
+    let secs = Math.floor(ms / 1e3 % 60);
 
     if (hours < 10)
       hours = `0${hours}`;
@@ -36,26 +38,32 @@ module.exports = {
     return `${hours}:${mins}:${secs}`;
   },
 
-  format(timespan) {
-    let largest = "s";
-    let smallest = "s";
+  epoch() {
+    return Math.floor(Date.now() / 1e3);
+  },
 
-    for (const time in times) {
-      if (times.hasOwnProperty(time) === false)
-        continue;
+  format(s, precision = 2) {
+    const items = [];
 
-      if (times[largest] < times[time] && timespan > times[time])
-        largest = time;
-      else if (timespan === times[time])
-        return `1${time}`;
+    for (let i = 0; i < keys.length; i++) {
+      if (times[keys[i]][0] <= s) {
+        let num;
 
-      if (times[time] < times[smallest])
-        smallest = time;
+        if (times[keys[i]][1] == null)
+          num = Math.floor(s / times[keys[i]][0]);
+        else
+          num = Math.floor(s / times[keys[i]][0] % times[keys[i]][1]);
+
+        if (num !== 0)
+          items.push(`${num} ${keys[i]}${num === 1 ? "" : "s"}`);
+      }
     }
 
-    if (largest.length !== 0)
-      return `${Math.floor(timespan / times[largest] * 10) / 10}${largest}`;
+    return precision === 1 ? items[0] : str.list(items.slice(0, precision));
+  },
 
-    return `0${smallest}`;
+  formatDate(date) {
+    return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date
+      .getUTCDate()}`;
   }
 };

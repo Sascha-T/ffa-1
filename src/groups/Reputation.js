@@ -18,7 +18,7 @@
 "use strict";
 const {Group} = require("patron.js");
 
-module.exports = new class ReputationGroup extends Group {
+module.exports = new class Reputation extends Group {
   constructor() {
     super({
       description: "Commands dedicated to managing the reputation system.",

@@ -17,18 +17,21 @@
  */
 "use strict";
 const {ArgumentPrecondition, PreconditionResult} = require("patron.js");
+const {data: {responses}} = require("../../services/data.js");
+const str = require("../../utilities/string.js");
 
-module.exports = new class MaxLengthArgumentPrecondition extends ArgumentPrecondition {
+module.exports = new class MaxLength extends ArgumentPrecondition {
   constructor() {
-    super({
-      name: "maxlength"
-    });
+    super({name: "maxlength"});
   }
 
   async run(cmd, msg, arg, args, val, opt) {
     if (val == null || val.length <= opt.max)
       return PreconditionResult.fromSuccess();
 
-    return PreconditionResult.fromError(cmd, `The maximum ${arg.name} length is ${opt.max} characters.`);
+    return PreconditionResult.fromError(
+      cmd,
+      str.format(responses.maxLen, arg.name, opt.max)
+    );
   }
 }();
