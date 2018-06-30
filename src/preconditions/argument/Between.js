@@ -26,8 +26,8 @@ module.exports = new class Between extends ArgumentPrecondition {
   }
 
   async run(cmd, msg, arg, args, val, opt) {
-    if ((opt.min == null || val >= opt.min) && (opt.max == null
-        || val <= opt.max))
+    if (val == null || ((opt.min == null || val >= opt.min) && (opt.max == null
+        || val <= opt.max)))
       return PreconditionResult.fromSuccess();
 
     if (opt.min == null) {
