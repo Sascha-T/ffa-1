@@ -29,8 +29,8 @@ module.exports = async (msg, guild) => {
 
   if (msg.content.startsWith(config.bot.prefix) === false && isMuted === false
       && (cooldowns.has(msg.author.id) === false
-      || cooldowns.get(msg.author.id) >= Date.now())) {
-    cooldowns.set(msg.author.id, Date.now() + guild.chat.delay);
+      || cooldowns.get(msg.author.id) <= Date.now())) {
+    cooldowns.set(msg.author.id, Date.now() + guild.chat.delay * 1e3);
     await db.changeRep(
       msg.channel.guild.id,
       msg.author.id,
