@@ -17,17 +17,19 @@
  */
 "use strict";
 const fs = require("fs");
-const path = require("path");
-const util = require("util");
 const {
   data: {
     constants: {
       logColors,
       logsDirectory
     }
-  }
+  },
+  responses
 } = require("../services/data.js");
+const path = require("path");
+const str = require("./string.js");
 const time = require("./time.js");
+const util = require("util");
 const appendFile = util.promisify(fs.appendFile);
 
 module.exports = new class Logger {
@@ -62,9 +64,12 @@ module.exports = new class Logger {
     if (this.stream.writable === false)
       await this.waitTillWritable();
 
-    console[level.toLowerCase()](
-      `${this.dateStr} ${logColors[level]}[${level}]\x1b[0m ${util.inspect(msg, {depth: 10})}`
-    );
+    console[level.toLowerCase()](str.format(
+      responses.console,
+      this.dateStr,
+      logColors[level],
+      level
+    ), msg);
 
     const formattedMsg = `${this.dateStr} [${level}] ${msg}\n`;
 

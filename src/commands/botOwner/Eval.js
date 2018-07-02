@@ -20,6 +20,9 @@ const patron = require("patron.js");
 /* eslint-disable-next-line no-unused-vars */
 const {serv, util} = require("../../utilities/requireAll.js");
 const nodeUtil = require("util");
+function inspect(obj) {
+  return nodeUtil.inspect(obj, {depth: 3});
+}
 
 module.exports = new class Eval extends patron.Command {
   constructor() {
@@ -43,22 +46,22 @@ module.exports = new class Eval extends patron.Command {
     const {author: user, channel, member} = msg;
     const {guild} = msg.channel;
     /* eslint-enable no-unused-vars */
-    let result;
+    let res;
 
     try {
-      result = await eval(args.code);
+      res = await eval(args.code);
     } catch (e) {
-      result = e;
+      res = e;
     }
 
-    if (result instanceof Error) {
+    if (res instanceof Error) {
       await util.message.create(msg.channel, {fields: [{
         name: "Eval",
         value: util.string.code(args.code)
       },
       {
         name: "Error",
-        value: util.string.code(result)
+        value: util.string.code(res)
       }]}, serv.cli.config.customColors.error);
     } else {
       await util.message.create(msg.channel, {fields: [{
@@ -67,7 +70,7 @@ module.exports = new class Eval extends patron.Command {
       },
       {
         name: "Result",
-        value: util.string.code(result === "" ? "Success." : nodeUtil.inspect(result, {depth: 3}))
+        value: util.string.code(res === "" ? "Success" : inspect(res))
       }]});
     }
   }
