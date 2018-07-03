@@ -41,17 +41,17 @@ module.exports = new class GetRep extends Command {
   }
 
   async run(msg, args) {
-    const res = await db.pool.query(this.lbQuery, [msg.channel.guild.id]);
-    const len = res.rows.length - 1;
-    let pos = res.rows.length;
-    let {reputation} = res.rows[len];
+    let res = await db.pool.query(this.lbQuery, [msg.channel.guild.id]);
+    let pos = res.rows.findIndex(r => r.user_id === args.user.id);
+    let reputation;
 
-    for (let i = 0; i < len; i++) {
-      if (res.rows[i].user_id === args.user.id) {
-        pos = i + 1;
-        ({reputation} = res.rows[i]);
-        break;
-      }
+    if (pos === -1) {
+      res = await db.getUser(msg.channel.guild.id, args.user.id, "reputation");
+      ({reputation} = res);
+      pos = "Unranked";
+    } else {
+      reputation = res.rows[pos].reputation;
+      pos = `#${pos + 1}`;
     }
 
     await message.create(msg.channel, {

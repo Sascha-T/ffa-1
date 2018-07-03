@@ -28,12 +28,8 @@ module.exports = new class User extends TypeReader {
   async read(cmd, msg, arg, args, val) {
     let id = val.match(regexes.mention);
 
-    if (id != null || (id = val.match(regexes.id)) != null) {
-      id = id[id.length - 1];
-
-      if (client.users.get(id) != null)
-        return TypeReaderResult.fromSuccess(client.users.get(id));
-    }
+    if (id != null || (id = val.match(regexes.id)) != null)
+      return TypeReaderResult.fromSuccess(client.users.get(id[id.length - 1]));
 
     if (msg.channel.guild == null)
       return TypeReaderResult.fromError(cmd, "User not found.");
@@ -42,18 +38,19 @@ module.exports = new class User extends TypeReader {
 
     if (index === -1) {
       const member = msg.channel.guild.members
-        .find(m => m.username === val);
+        .find(m => m.username === val || (m.nick != null && m.nick === val));
 
       if (member != null)
         return TypeReaderResult.fromSuccess(member.user);
     } else {
       const discrim = val.slice(index + 1);
-      const username = val.slice(0, index).toLowerCase();
+      const username = val.slice(0, index);
 
       if (regexes.discrim.test(discrim) === true) {
         const member = msg.channel.guild.members
           .find(m => m.discriminator === discrim
-            && m.username.toLowerCase() === username);
+            && (m.username === username
+            || (m.nick != null && m.nick === username)));
 
         if (member != null)
           return TypeReaderResult.fromSuccess(member.user);

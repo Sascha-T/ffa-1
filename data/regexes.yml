@@ -2,11 +2,11 @@ discrim: !!js/regexp /^\d{4}$/
 
 format: !!js/regexp /{(\d+)}/g
 
-id: !!js/regexp /^\d{14,20}$/
+id: !!js/regexp /\d{14,20}/
 
 markdown: !!js/regexp /[<@!#&>:_~*`\\]/g
 
-mention: !!js/regexp /^<@!?(\d{14,20})>$/
+mention: !!js/regexp /<@!?(\d{14,20})>/
 
 newline: !!js/regexp /\n/g
 

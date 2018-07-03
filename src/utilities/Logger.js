@@ -22,9 +22,9 @@ const {
     constants: {
       logColors,
       logsDirectory
-    }
-  },
-  responses
+    },
+    responses
+  }
 } = require("../services/data.js");
 const path = require("path");
 const str = require("./string.js");
