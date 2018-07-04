@@ -53,7 +53,7 @@ module.exports = new class Clear extends Command {
       }),
       new Argument({
         defaultValue: null,
-        example: "was spamming",
+        example: "https://imgur.com/a/sKrBAKD",
         key: "evidence",
         name: "evidence",
         preconditionOptions: [{max: config.max.reasonLength}],
