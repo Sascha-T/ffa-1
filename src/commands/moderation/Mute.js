@@ -50,7 +50,7 @@ module.exports = new class Mute extends Command {
       new Argument({
         defaultValue: null,
         example: "https://imgur.com/a/z6j59Jj",
-        key: "reason",
+        key: "evidence",
         name: "evidence",
         preconditionOptions: [{max: config.max.reasonLength}],
         preconditions: ["maxlength"],
