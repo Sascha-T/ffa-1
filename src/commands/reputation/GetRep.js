@@ -50,7 +50,7 @@ module.exports = new class GetRep extends Command {
       ({reputation} = res);
       pos = "Unranked";
     } else {
-      reputation = res.rows[pos].reputation;
+      ({reputation} = res.rows[pos]);
       pos = `#${pos + 1}`;
     }
 
